@@ -1,0 +1,13 @@
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Registration</title>
+    </head>
+    <body>
+        <form method="post" action="/registration" th:attr="action=@{/registration}">
+            <input type="text" name="login" placeholder="login" />
+            <input type="password" name="password" placeholder="password" />
+            <input type="submit" value="ok" />
+        </form>
+    </body>
+
+</html>

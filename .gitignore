@@ -1,0 +1,8 @@
+/*
+!/src
+!/pom.xml
+!/.gitignore
+!/chat.http
+/**/js/bundle.*
+
+.vscode/

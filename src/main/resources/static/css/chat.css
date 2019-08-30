@@ -1,0 +1,13 @@
+h1{
+    margin: auto;
+    text-align: center;
+}
+.client-info {
+    margin: 15px auto;
+    width: 20%;
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+    font-size: 14pt;
+    font-family: 'Courier New', Courier, monospace;
+}
