@@ -4,6 +4,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import org.hibernate.annotations.NaturalId;
 
 import lombok.Getter;
@@ -18,6 +20,7 @@ public class ChatClient {
     private int id;
     @NaturalId
     private String login;
+    @JsonIgnore
     private String password;
     private boolean online;
 }

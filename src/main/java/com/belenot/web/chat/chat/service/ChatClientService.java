@@ -1,15 +1,21 @@
 package com.belenot.web.chat.chat.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.belenot.web.chat.chat.domain.ChatClient;
 import com.belenot.web.chat.chat.repository.ChatClientRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationListener;
+import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.socket.messaging.SessionConnectEvent;
 
 @Service
-public class ChatClientService {
+public class ChatClientService implements ApplicationListener<SessionConnectEvent> {
+    private Map<String, ChatClient> wsClientList = new HashMap<>();
     @Autowired
     private ChatClientRepository chatClientRepository;
 
@@ -36,4 +42,21 @@ public class ChatClientService {
     public ChatClient byId(int id) {
         return chatClientRepository.findById(id).get();
     }
+
+    public void addWsClient(String key, ChatClient client) {
+        wsClientList.put(key, client);
+    }
+
+    public ChatClient getWsClient(String key) {
+        return wsClientList.get(key);
+    }
+
+    @Override
+    public void onApplicationEvent(SessionConnectEvent event) {
+        MessageHeaderAccessor accessor = new MessageHeaderAccessor(event.getMessage());
+        ChatClient client = (ChatClient)((Map<String, Object>)accessor.getHeader("simpSessionAttributes")).get("client");
+        addWsClient((String)accessor.getHeader("simpSessionId"), client);
+    }
+
+    
 }
