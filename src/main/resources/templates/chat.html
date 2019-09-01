@@ -4,11 +4,19 @@
     <script src="/js/bundle.js"></script>
     <body>
         <h1>Chat</h1>
-        <section class="client-info">
-            <label th:text="'Login: ' + ${client.login}">Login:</label>
-        </section>
-        <section id="chat-pane">
-            
-        </section>
+        <form class="logout-form" action="/logout" >
+            <section class="client-info">
+                <label th:text="'Login: ' + ${client.login}">Login:</label>
+            </section>
+            <input type="submit" value="logout" />
+        </form>
+        <div class="chat-container">
+            <section id="chat-pane">
+                
+            </section>
+            <section id="chat-client-list-pane">
+                
+            </section>
+        </div>
     </body>
 </html>

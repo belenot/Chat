@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +24,6 @@ public class ChatController {
 
     @Autowired
     private ChatMessageService chatMessageService;
-
     @Autowired
     private ChatClientService chatClientService;
     
@@ -36,9 +36,17 @@ public class ChatController {
     // Redo within separete class for ws
     @MessageMapping("/message")
     @SendTo("/topic/message")
-    public ChatMessage addMessage(ChatMessage message, @Header("session") String session) {
-        ChatClient client = chatClientService.getWsClient(session);
+    public ChatMessage addMessage(ChatMessage message, SimpMessageHeaderAccessor accessor) {
+        ChatClient client = (ChatClient) accessor.getSessionAttributes().get("client");
         message.setClient(client);
         return chatMessageService.add(message);
+    }
+    @MessageMapping("/client")
+    @SendTo("/topic/client")
+    public ChatClient changeClientStatus(String online, SimpMessageHeaderAccessor accessor) {
+        ChatClient client = (ChatClient) accessor.getSessionAttributes().get("client");
+        if (!online.equals("offline") && !online.equals("online")) return client;
+        client.setOnline(online.equals("online"));
+        return chatClientService.add(client);
     }
 }

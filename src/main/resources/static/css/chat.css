@@ -1,13 +1,57 @@
+* {
+    outline: none;
+}
+body {
+    background:rgb(221, 215, 232);
+}
 h1{
     margin: auto;
     text-align: center;
 }
 .client-info {
+    display: flex;
+    justify-content: center;
+    font-size: 14pt;
+    font-family: 'Courier New', Courier, monospace;
+}
+.logout-form {
     margin: 15px auto;
     width: 20%;
     display: flex;
-    justify-content: center;
-    padding: 10px;
-    font-size: 14pt;
+    flex-direction: column;
+}
+.logout-form input {
+    width: fit-content;
+    margin: auto;
+    
+}
+.chat-container {
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    border: 4px solid black;
+    width: 80%;
+    margin: auto;
+}
+#chat-client-list-pane {
+    flex: 1;
+}
+#chat-pane {
+    flex: 9;
+}
+input[type='submit'] {
+    background: none;
+    flex: 1;
+    transition: .5s;
+    border-radius: 20px;
+    border: none;
     font-family: 'Courier New', Courier, monospace;
+    font-size: 14pt;
+}
+input[type='submit']:hover{
+    box-shadow: 0 0 5px black;
+    background: black;
+    cursor: pointer;
+    color: white;
+    font-weight: bold;
 }

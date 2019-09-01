@@ -8,6 +8,7 @@ import com.belenot.web.chat.chat.domain.ChatClient;
 import com.belenot.web.chat.chat.service.ChatClientService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +21,8 @@ public class AuthorizationController {
 
     @Autowired
     private ChatClientService chatClientService;
+    @Autowired
+    private SimpMessagingTemplate smt;
 
     @GetMapping("/authorization")
     public String authorization() {
@@ -34,6 +37,7 @@ public class AuthorizationController {
         client.setOnline(true);
         chatClientService.add(client);
         request.getSession().setAttribute("client", client);
+        smt.convertAndSend("/topic/client", client);
         response.sendRedirect("/chat");        
     }
 
@@ -51,6 +55,7 @@ public class AuthorizationController {
         client.setOnline(true);
         chatClientService.add(client);
         request.getSession().setAttribute("client", client);
+        smt.convertAndSend("/topic/client", client);
         response.sendRedirect("/chat");
     }
 
@@ -63,6 +68,7 @@ public class AuthorizationController {
             chatClientService.add(client);
             session.removeAttribute("client");
             session.invalidate();
+            smt.convertAndSend("/topic/client", client);
         }
         response.sendRedirect("authorization");
     }

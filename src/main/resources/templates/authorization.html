@@ -1,9 +1,10 @@
 <html xmlns:th="http://www.thymeleaf.org">
     <head>
         <title>Authorization</title>
+        <link href="/css/authorization.css" rel="stylesheet" type="text/css" th:attr="href=@{/css/authorization.css}"/>
     </head>
     <body>
-        <form action="@{/authorization}" method="post" th:attr="action=@{/authorization}">
+        <form action="/authorization" method="post" th:attr="action=@{/authorization}">
             <input type="text" name="login" placeholder="login" />
             <input type="password" name="password" placeholder="password" />
             <input type="submit" value="ok" />
