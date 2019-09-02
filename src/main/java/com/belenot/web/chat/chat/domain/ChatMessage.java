@@ -7,6 +7,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,6 +21,7 @@ public class ChatMessage {
     private int id;
     @ManyToOne
     private ChatClient client;
+    @JsonFormat(pattern = "HH:mm:ss")
     private LocalDateTime time;
     private String text;
 

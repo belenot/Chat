@@ -1,5 +1,6 @@
 package com.belenot.web.chat.chat.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.belenot.web.chat.chat.domain.ChatClient;
@@ -29,6 +30,7 @@ public class ChatMessageController {
     @PostMapping
     public ChatMessage add(@RequestBody ChatMessage chatMessage, @SessionAttribute("client") ChatClient client) {
         chatMessage.setClient(client);
+        chatMessage.setTime(LocalDateTime.now());
         return chatMessageService.add(chatMessage);
     }
     
