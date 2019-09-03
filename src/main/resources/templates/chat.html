@@ -3,17 +3,17 @@
     <link rel="stylesheet" href="/css/chat.css" type="text/css" />
     <script src="/js/bundle.js"></script>
     <body>
-        <h1>Chat</h1>
-        <form class="logout-form" action="/logout" >
-            <section class="client-info">
-                <label th:text="'Login: ' + ${client.login}">Login:</label>
-            </section>
-            <input type="submit" value="logout" />
-        </form>
+        <h1>chat</h1>
         <div class="chat-container">
             <section id="chat-pane">
                 
             </section>
+            <form id="logout-form" action="/logout" >
+                <section id="client-info">
+                    <label th:text="${client.login}">Login:</label>
+                </section>
+                <input type="submit" value="Sign Out" />
+            </form>
             <section id="chat-client-list-pane">
                 
             </section>

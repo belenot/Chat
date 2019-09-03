@@ -16,7 +16,9 @@ public class ChatMessageService {
     private ChatMessageRepository chatMessageRepository;
     
     public ChatMessage add(ChatMessage message) {
-        return chatMessageRepository.save(message);
+        if (message.getText().length() > 0)
+            return chatMessageRepository.save(message);
+        return null;
     }
 
     public List<ChatMessage> byClient(ChatClient chatClient) {
