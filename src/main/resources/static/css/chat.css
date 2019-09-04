@@ -3,7 +3,7 @@
 }
 body {
     /* background: repeating-linear-gradient(45deg, black, black 10px, rgba(0,0,0,0.9) 10px, rgba(0,0,0,0.9) 20px); */
-    background: url("/img/background1.jpeg");
+    background: url("/img/background4.jpg");
     display: flex;
     flex-direction: row-reverse;
 }
