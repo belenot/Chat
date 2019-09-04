@@ -3,6 +3,5 @@
 !/pom.xml
 !/.gitignore
 !/chat.http
-/**/js/bundle.*
-/**/img/*
+
 .vscode/
