@@ -40891,8 +40891,13 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 window.React = _react2.default;
 window.api = _api.api;
 
+var typingClients = [];
 var sendMessage = function sendMessage(message) {
     if (message.text) client.send("/app/message", {}, JSON.stringify(message));
+};
+var typing = function typing(stop) {
+    var typingClient = { login: currentClientLogin, stop: stop };
+    client.send("/topic/typing", {}, JSON.stringify(typingClient));
 };
 var getMessages;
 var provideMessages = function provideMessages(callback) {
@@ -40905,11 +40910,23 @@ var recieveMessage = function recieveMessage(r) {
 var clientChanged = function clientChanged(r) {
     renderClientListPane(null, JSON.parse(r.body));
 };
+var typingStatusChanged = function typingStatusChanged(r) {
+    var currentClient = JSON.parse(r.body);
+    typingClients = [].concat(_toConsumableArray(typingClients.filter(function (client) {
+        return currentClient.login != client.login;
+    })));
+    if (!currentClient.stop) {
+        typingClients = [].concat(_toConsumableArray(typingClients), [currentClient]);
+    }
+    renderChatPane([], typingClients);
+};
 
-var renderChatPane = function renderChatPane(messages) {
+var renderChatPane = function renderChatPane(messages, typingClients) {
     _reactDom2.default.render(_react2.default.createElement(_StyledChatPane.StyledChatPane, { initMessages: messages,
+        typingClients: typingClients,
         currentClientLogin: currentClientLogin,
         sendMessage: sendMessage,
+        typing: typing,
         provideMessages: provideMessages,
         theme: _strictTheme.strictTheme }), document.querySelector("#chat-pane"));
 };
@@ -40926,9 +40943,11 @@ window.ws = ws;
 window.client = client;
 var messageSubscription;
 var clientSubscription;
+var typingSubscription;
 client.connect({}, function () {
     messageSubscription = client.subscribe("/topic/message", recieveMessage);
     clientSubscription = client.subscribe("/topic/client", clientChanged);
+    typingSubscription = client.subscribe("/topic/typing", typingStatusChanged);
 });
 
 window.onload = function () {
@@ -40971,6 +40990,8 @@ var _StyledOwnedMessage = __webpack_require__(/*! ./styled/StyledOwnedMessage */
 
 var _StyledMessageForm = __webpack_require__(/*! ./styled/StyledMessageForm */ "./src/components/styled/StyledMessageForm.js");
 
+var _StyledTypingStatus = __webpack_require__(/*! ./styled/StyledTypingStatus */ "./src/components/styled/StyledTypingStatus.js");
+
 var _react = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
@@ -40982,10 +41003,16 @@ var ChatPane = exports.ChatPane = function ChatPane(_ref) {
         initMessages = _ref$initMessages === undefined ? [] : _ref$initMessages,
         _ref$currentClientLog = _ref.currentClientLogin,
         currentClientLogin = _ref$currentClientLog === undefined ? "" : _ref$currentClientLog,
+        _ref$typingClients = _ref.typingClients,
+        typingClients = _ref$typingClients === undefined ? [] : _ref$typingClients,
         _ref$sendMessage = _ref.sendMessage,
         sendMessage = _ref$sendMessage === undefined ? function (f) {
         return f;
     } : _ref$sendMessage,
+        _ref$typing = _ref.typing,
+        typing = _ref$typing === undefined ? function (f) {
+        return f;
+    } : _ref$typing,
         _ref$provideMessages = _ref.provideMessages,
         provideMessages = _ref$provideMessages === undefined ? function (f) {
         return f;
@@ -41023,7 +41050,8 @@ var ChatPane = exports.ChatPane = function ChatPane(_ref) {
                 return message.client.login != currentClientLogin ? React.createElement(_StyledMessage.StyledMessage, { theme: theme, key: message.id, message: message }) : React.createElement(_StyledOwnedMessage.StyledOwnedMessage, { theme: theme, key: message.id, message: message });
             })
         ),
-        React.createElement(_StyledMessageForm.StyledMessageForm, { theme: theme, sendMessage: onSendMessage })
+        React.createElement(_StyledTypingStatus.StyledTypingStatus, { clients: typingClients }),
+        React.createElement(_StyledMessageForm.StyledMessageForm, { theme: theme, sendMessage: onSendMessage, typing: typing })
     );
 };
 
@@ -41203,20 +41231,31 @@ var MessageForm = exports.MessageForm = function MessageForm(_ref) {
         _ref$sendMessage = _ref.sendMessage,
         sendMessage = _ref$sendMessage === undefined ? function (f) {
         return f;
-    } : _ref$sendMessage;
+    } : _ref$sendMessage,
+        _ref$typing = _ref.typing,
+        typing = _ref$typing === undefined ? function (f) {
+        return f;
+    } : _ref$typing;
 
     var textInput = void 0;
     var onSendMessage = function onSendMessage(e) {
         e.preventDefault();
         sendMessage(textInput.value);
+        setTimeout(100);
+        typing(true);
         textInput.value = null;
+    };
+    var onTyping = function onTyping(e) {
+        typing(e.target.value ? false : true);
     };
     return React.createElement(
         "form",
         { className: className, onSubmit: function onSubmit(e) {
                 return onSendMessage(e);
             } },
-        React.createElement("input", { autoComplete: "off", ref: function ref(el) {
+        React.createElement("input", { onChange: function onChange(e) {
+                return onTyping(e);
+            }, autoComplete: "off", ref: function ref(el) {
                 return textInput = el;
             }, type: "text", name: "message", placeholder: "text" }),
         React.createElement("input", { type: "image", src: "/img/mail.png", value: "send" })
@@ -41261,6 +41300,46 @@ var OwnedMessage = exports.OwnedMessage = function OwnedMessage(_ref) {
             { className: "text" },
             message.text
         )
+    );
+};
+
+/***/ }),
+
+/***/ "./src/components/TypingStatus.js":
+/*!****************************************!*\
+  !*** ./src/components/TypingStatus.js ***!
+  \****************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var TypingStatus = exports.TypingStatus = function TypingStatus(_ref) {
+    var _ref$className = _ref.className,
+        className = _ref$className === undefined ? "" : _ref$className,
+        _ref$clients = _ref.clients,
+        clients = _ref$clients === undefined ? {} : _ref$clients,
+        _ref$backGetClients = _ref.backGetClients,
+        backGetClients = _ref$backGetClients === undefined ? function (f) {
+        return f;
+    } : _ref$backGetClients;
+
+    backGetClients(function () {
+        return [].concat(_toConsumableArray(clients));
+    });
+    return React.createElement(
+        "section",
+        { className: className },
+        clients.length > 0 ? clients.length == 1 ? clients[0].login + " is typing..." : clients.map(function (client, index) {
+            return index < clients.length - 1 ? client.login + ", " : client.login + " are typing";
+        }) : ''
     );
 };
 
@@ -41417,7 +41496,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.StyledMessageForm = undefined;
 
-var _templateObject = _taggedTemplateLiteral(['\n    margin-top: 20px;\n    display: flex;\n    justify-content: space-between;\n    input[type=\'image\'] {\n        height: 32px;\n        align-self: center;\n    }\n    input[type=\'text\'] {\n        background: none;\n        box-shadow: inset 0 0 20px white;\n        border: 3px solid white;\n        border-radius: 5px;\n        align-self: center;\n        color: white;\n        flex: 9;\n        margin: 10px;\n        padding: 5px;\n        padding-left: 1em;\n        :active, :hover, :focus {\n            box-shadow: none;\n            border-color: white;\n            ::placeholder{\n                color: gray;\n            }\n        };\n        ::placeholder {\n            color: black;\n            font-weight: bold;\n            font-family: \'Courier New\', Courier, monospace;\n            text-align: center;\n        }\n    }\n'], ['\n    margin-top: 20px;\n    display: flex;\n    justify-content: space-between;\n    input[type=\'image\'] {\n        height: 32px;\n        align-self: center;\n    }\n    input[type=\'text\'] {\n        background: none;\n        box-shadow: inset 0 0 20px white;\n        border: 3px solid white;\n        border-radius: 5px;\n        align-self: center;\n        color: white;\n        flex: 9;\n        margin: 10px;\n        padding: 5px;\n        padding-left: 1em;\n        :active, :hover, :focus {\n            box-shadow: none;\n            border-color: white;\n            ::placeholder{\n                color: gray;\n            }\n        };\n        ::placeholder {\n            color: black;\n            font-weight: bold;\n            font-family: \'Courier New\', Courier, monospace;\n            text-align: center;\n        }\n    }\n']);
+var _templateObject = _taggedTemplateLiteral(['\n    margin-top: 5px;\n    display: flex;\n    justify-content: space-between;\n    input[type=\'image\'] {\n        height: 32px;\n        align-self: center;\n    }\n    input[type=\'text\'] {\n        background: none;\n        box-shadow: inset 0 0 20px white;\n        border: 3px solid white;\n        border-radius: 5px;\n        align-self: center;\n        color: white;\n        flex: 9;\n        margin: 10px;\n        padding: 5px;\n        padding-left: 1em;\n        :active, :hover, :focus {\n            box-shadow: none;\n            border-color: white;\n            ::placeholder{\n                color: gray;\n            }\n        };\n        ::placeholder {\n            color: black;\n            font-weight: bold;\n            font-family: \'Courier New\', Courier, monospace;\n            text-align: center;\n        }\n    }\n'], ['\n    margin-top: 5px;\n    display: flex;\n    justify-content: space-between;\n    input[type=\'image\'] {\n        height: 32px;\n        align-self: center;\n    }\n    input[type=\'text\'] {\n        background: none;\n        box-shadow: inset 0 0 20px white;\n        border: 3px solid white;\n        border-radius: 5px;\n        align-self: center;\n        color: white;\n        flex: 9;\n        margin: 10px;\n        padding: 5px;\n        padding-left: 1em;\n        :active, :hover, :focus {\n            box-shadow: none;\n            border-color: white;\n            ::placeholder{\n                color: gray;\n            }\n        };\n        ::placeholder {\n            color: black;\n            font-weight: bold;\n            font-family: \'Courier New\', Courier, monospace;\n            text-align: center;\n        }\n    }\n']);
 
 var _MessageForm = __webpack_require__(/*! ../MessageForm */ "./src/components/MessageForm.js");
 
@@ -41465,6 +41544,37 @@ var StyledOwnedMessage = exports.StyledOwnedMessage = (0, _styledComponents2.def
 }, function (props) {
     return '2px solid' + props.theme.border.color;
 });
+
+/***/ }),
+
+/***/ "./src/components/styled/StyledTypingStatus.js":
+/*!*****************************************************!*\
+  !*** ./src/components/styled/StyledTypingStatus.js ***!
+  \*****************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.StyledTypingStatus = undefined;
+
+var _templateObject = _taggedTemplateLiteral(['\n    color: white;\n    height: 1em;\n    padding: 5px;\n    vertical-align: middle;\n'], ['\n    color: white;\n    height: 1em;\n    padding: 5px;\n    vertical-align: middle;\n']);
+
+var _styledComponents = __webpack_require__(/*! styled-components */ "./node_modules/styled-components/dist/styled-components.browser.esm.js");
+
+var _styledComponents2 = _interopRequireDefault(_styledComponents);
+
+var _TypingStatus = __webpack_require__(/*! ../TypingStatus */ "./src/components/TypingStatus.js");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+
+var StyledTypingStatus = exports.StyledTypingStatus = (0, _styledComponents2.default)(_TypingStatus.TypingStatus)(_templateObject);
 
 /***/ }),
 
