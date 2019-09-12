@@ -1,10 +1,12 @@
 package com.belenot.web.chat.chat.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import javax.persistence.ManyToMany;
 
 import org.hibernate.annotations.NaturalId;
 
@@ -14,13 +16,17 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class ChatClient {
+public class Room {
     @Id
     @GeneratedValue
     private int id;
     @NaturalId
-    private String login;
-    @JsonIgnore
+    private String title;
     private String password;
-    private boolean online;
+    @ManyToMany
+    private List<Client> clients = new ArrayList<>();
+    @ManyToMany
+    private List<Moderator> moderators = new ArrayList<>();
+    @ManyToMany
+    private List<Client> banned = new ArrayList<>();
 }

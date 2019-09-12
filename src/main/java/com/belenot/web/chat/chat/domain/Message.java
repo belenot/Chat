@@ -2,8 +2,6 @@ package com.belenot.web.chat.chat.domain;
 
 import java.time.LocalDateTime;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -19,12 +17,14 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class ChatMessage {
+public class Message {
     @Id
     @GeneratedValue
     private int id;
     @ManyToOne
-    private ChatClient client;
+    private Client client;
+    @ManyToOne
+    private Room room;
     @JsonFormat(pattern = "HH:mm:ss")
     private LocalDateTime time;
     @Type(type =  "materialized_clob")

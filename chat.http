@@ -1,23 +1,7 @@
 ###
 @host = http://localhost:8080
-GET {{host}}/registration
+GET {{host}}/login
 ###
-POST {{host}}/registration?login=l1&password=p
+POST {{host}}/login?username=lol&password=lel&_csrf=0e65704b-c836-47aa-bc33-a09e72c95310
 ###
-POST {{host}}/authorization?login=l&password=p
-###
-POST {{host}}/message
-Content-Type: application/json
-
-{
-    "text": "hey"
-}
-###
-GET {{host}}/chat
-###
-GET {{host}}/logout
-###
-GET {{host}}/client
-###
-GET {{host}}/client/online
-
+POST {{host}}/login?username=lol&password=lel&_csrf=feee9871-4a02-4fa8-b52a-ede2a6355f3d

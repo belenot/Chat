@@ -1,17 +1,19 @@
 <html>
     <title>Chat</title>
     <link rel="stylesheet" href="/css/chat.css" type="text/css" />
-    <script src="/js/bundle.js"></script>
+    <!-- <script src="/js/bundle.js"></script> -->
     <body>
         <h1>chat</h1>
         <div class="chat-container">
             <section id="chat-pane">
                 
             </section>
-            <form id="logout-form" action="/logout" >
+            <form id="logout-form" method="post" action="/logout" >
                 <section id="client-info">
-                    <label th:text="${client.login}">Login:</label>
+                    <label th:text="${client.getUsername()}">Login:</label>
                 </section>
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                
                 <input type="submit" value="Sign Out" />
             </form>
             <section id="chat-client-list-pane">

@@ -4,6 +4,7 @@
 }
 body {
     background: url("/img/background1.jpeg");
+    background-color: #292540;
 }
 .authorization {
     display: flex;

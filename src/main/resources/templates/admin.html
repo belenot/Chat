@@ -1,0 +1,22 @@
+<html>
+    <head>
+        <title>Admin Console</title>
+        <link href="/css/admin.css" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+        <h1 th:text="'Admin:' + ${admin.getUsername()}">Admin: </h1>
+        <section class="client-list">
+            <h2>Clients</h2>
+            <div th:each="client : ${clients}">
+                <label th:text="${client.getLogin()}"></label>
+            </div>
+        </section>
+        <section class="room-list">
+            <h2>Rooms</h2>
+            <div>
+                <label th:each="room : ${rooms}" th:text="${room.getTitle()}"></label>
+            </div>
+        </section>
+    </body>
+
+</html>
