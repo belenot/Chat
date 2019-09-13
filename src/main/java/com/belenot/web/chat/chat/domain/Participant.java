@@ -10,9 +10,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
 import com.belenot.web.chat.chat.domain.support.Deletable;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import org.hibernate.annotations.NaturalId;
+import com.belenot.web.chat.chat.domain.support.Subject;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,19 +21,14 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@RequiredArgsConstructor
 @NoArgsConstructor
-public class Client implements Deletable {
+@RequiredArgsConstructor
+public class Participant implements Deletable {
     @Id
     @GeneratedValue
-    @NonNull
     private int id;
-    @NaturalId
-    @NonNull
-    private String login;
-    @JsonIgnore
-    @NonNull
-    private String password;
+    private boolean banned;
+    
 
     // Deletable
     private boolean deleted;
@@ -43,10 +36,12 @@ public class Client implements Deletable {
     @ManyToOne
     private Client deleter;
 
-    @OneToMany(mappedBy = "client")
-    @JsonIgnore
-    private List<Participant> participants;
-    @OneToMany(mappedBy = "client")
-    @JsonIgnore
-    private List<Moderator> moderators;
+    @NonNull
+    @ManyToOne
+    private Client client;
+    @NonNull
+    @ManyToOne
+    private Room room;
+    @OneToMany(mappedBy = "participant")
+    private List<Message> messages;
 }

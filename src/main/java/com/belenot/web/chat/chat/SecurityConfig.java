@@ -12,7 +12,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
                 .antMatchers("/css/**", "/js/**", "/signup", "/about").permitAll()
-                .antMatchers("/room/moderator").hasRole("MODERATOR")
                 .antMatchers("/admin").hasRole("ADMIN")
                 .anyRequest().authenticated()
             .and()
@@ -22,7 +21,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .defaultSuccessUrl("/chat")
             .and()
                 .logout()
-                .logoutUrl("/logout");
+                .logoutUrl("/logout")
+            .and() //SockJS relax fallback
+                .headers()
+                .frameOptions().sameOrigin()
+            .and() //SockJS relax csrf endpoint
+                .csrf()
+                .ignoringAntMatchers("/chat/ws/**")
+            .and();
     }
     
 }

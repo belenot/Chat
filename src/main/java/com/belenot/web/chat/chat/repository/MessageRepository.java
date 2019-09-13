@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Integer>{
-    public List<Message> findByClient(Client client);
+    public List<Message> findByParticipantClient(Client client);
     public List<Message> findByRoom(Room room);
-    public List<Message> findByRoomAndClient(Room room, Client client);
+    public List<Message> findByRoomAndParticipantClient(Room room, Client client);
 }

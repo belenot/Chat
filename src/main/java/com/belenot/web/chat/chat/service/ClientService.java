@@ -27,7 +27,7 @@ public class ClientService implements UserDetailsService {
     }
 
     public List<Client> byRoom(Room room) {
-        return clientRepository.findByRooms(room);
+        return clientRepository.findByParticipantsRoomAndParticipantsDeleted(room, false);
     }
 
     public List<Client> all() {

@@ -21,17 +21,16 @@ public class ClientDetails implements UserDetails {
     private Client client;
     public enum ClientAuthorities {CLIENT, MODERATOR, ADMIN};
 
+    public Client getClient() {
+        return client;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> authorities = new ArrayList<>();
         if (client instanceof Client) authorities.add(new SimpleGrantedAuthority("ROLE_CLIENT"));
-        if (client instanceof Moderator) {
-            authorities.add(new SimpleGrantedAuthority("ROLE_CLIENT"));
-            authorities.add(new SimpleGrantedAuthority("ROLE_MODERATOR"));
-        }
         if (client instanceof Admin) {
             authorities.add(new SimpleGrantedAuthority("ROLE_CLIENT"));
-            authorities.add(new SimpleGrantedAuthority("ROLE_MODERATOR"));
             authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         }
         return authorities;

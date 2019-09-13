@@ -6,7 +6,9 @@ import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.hibernate.annotations.NaturalId;
 
@@ -22,11 +24,38 @@ public class Room {
     private int id;
     @NaturalId
     private String title;
+    @JsonIgnore
     private String password;
-    @ManyToMany
-    private List<Client> clients = new ArrayList<>();
-    @ManyToMany
+
+    @OneToMany(mappedBy = "room")
+    @JsonIgnore
+    private List<Participant> participants = new ArrayList<>();
+    @OneToMany(mappedBy = "room")
+    @JsonIgnore
     private List<Moderator> moderators = new ArrayList<>();
-    @ManyToMany
-    private List<Client> banned = new ArrayList<>();
+    @OneToMany(mappedBy = "room")
+    @JsonIgnore
+    private List<Participant> banned = new ArrayList<>();
+
+    public void addModerator(Moderator moderator) {
+        moderators.add(moderator);
+        moderator.setRoom(this);
+    }
+
+    public void removeModerator(Moderator moderator) {
+        moderators.removeIf(m -> m.getId() == moderator.getId());
+        moderator.setRoom(null);
+    }
+
+    public void addParticipant(Participant participant) {
+        participants.add(participant);
+        participant.setRoom(this);
+    }
+    
+    public void removeParticipant(Participant participant) {
+        participants.removeIf(p ->p.getId() == participant.getId());
+        participant.setRoom(null);
+    }
+
+    
 }

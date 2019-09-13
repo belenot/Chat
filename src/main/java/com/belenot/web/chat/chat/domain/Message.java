@@ -22,13 +22,11 @@ public class Message {
     @GeneratedValue
     private int id;
     @ManyToOne
-    private Client client;
+    private Participant participant;
     @ManyToOne
     private Room room;
     @JsonFormat(pattern = "HH:mm:ss")
-    private LocalDateTime time;
+    private LocalDateTime time = LocalDateTime.now();
     @Type(type =  "materialized_clob")
     private String text;
-
-
 }

@@ -13,8 +13,8 @@
         </section>
         <section class="room-list">
             <h2>Rooms</h2>
-            <div>
-                <label th:each="room : ${rooms}" th:text="${room.getTitle()}"></label>
+            <div th:each="room : ${rooms}">
+                <label th:text="${room.getTitle()}"></label>
             </div>
         </section>
     </body>

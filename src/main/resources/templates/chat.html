@@ -1,7 +1,11 @@
 <html>
-    <title>Chat</title>
-    <link rel="stylesheet" href="/css/chat.css" type="text/css" />
-    <!-- <script src="/js/bundle.js"></script> -->
+    <head>
+        <title>Chat</title>
+        <link rel="stylesheet" href="/css/chat.css" type="text/css" />
+        <!-- <script src="/js/bundle.js"></script> -->
+        <meta name="_csrf" th:attr="content=${_csrf.token}"/>
+        <meta name="_csrf_header" th:attr="content=${_csrf.headerName}" />
+    </head>
     <body>
         <h1>chat</h1>
         <div class="chat-container">
