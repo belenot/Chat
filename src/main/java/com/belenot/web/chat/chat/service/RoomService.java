@@ -43,6 +43,13 @@ public class RoomService {
     public Room byId(int id) {
         return roomRepository.findById(id).orElse(null);
     }
+
+    public List<Room> joinedByClient(Client client) {
+        return roomRepository.findByParticipantsClient(client);
+    }
+    public List<Room> moderatedByClient(Client client) {
+        return roomRepository.findByModeratorsClient(client);
+    }
     // Need query optimization(batching)
     @Transactional
     public void delete(Room room) {

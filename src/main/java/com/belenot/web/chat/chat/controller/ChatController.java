@@ -4,6 +4,7 @@ import com.belenot.web.chat.chat.domain.Client;
 import com.belenot.web.chat.chat.domain.Message;
 import com.belenot.web.chat.chat.domain.Participant;
 import com.belenot.web.chat.chat.domain.Room;
+import com.belenot.web.chat.chat.domain.support.wrap.MessageWrapper;
 import com.belenot.web.chat.chat.security.ClientDetails;
 import com.belenot.web.chat.chat.service.ClientService;
 import com.belenot.web.chat.chat.service.MessageService;
@@ -37,6 +38,8 @@ public class ChatController {
     private SimpMessagingTemplate smt;
     @Autowired
     private WebSocketMessageBrokerStats wsmbs;
+    @Autowired
+    private MessageWrapper messageWrapper;
     
     @MessageMapping("/room/{roomId}/message/new")
     public void send(@Payload String text, @DestinationVariable("roomId") int roomId) {
@@ -48,6 +51,7 @@ public class ChatController {
             throw new HttpClientErrorException(HttpStatus.FORBIDDEN);
         }
         Message message = messageService.add(text, client, room);
-        smt.convertAndSend("/topic/chat/room/"+roomId+"/message", message);
+        smt.convertAndSend("/topic/chat/room/"+roomId+"/message", messageWrapper.wrapUp(message));
     }
+
 }

@@ -13,6 +13,7 @@
         </script>
         <meta name="csrf-header" th:attr="content=${_csrf.headerName}" />
         <meta name="csrf-token" th:attr="content=${_csrf.token}" />
+        <meta name="login" th:attr="content=${client.getLogin()}" />
     </head>
     <body>
         <div id="react-app">

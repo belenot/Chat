@@ -11,6 +11,8 @@ import javax.persistence.NamedEntityGraph;
 import javax.persistence.OneToMany;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 import org.hibernate.annotations.NaturalId;
 
@@ -29,6 +31,7 @@ public class Room {
     @NaturalId
     private String title;
     @JsonIgnore
+    @JsonProperty(access = Access.WRITE_ONLY)
     private String password;
 
     @OneToMany(mappedBy = "room")

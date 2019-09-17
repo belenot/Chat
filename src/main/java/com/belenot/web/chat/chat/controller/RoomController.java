@@ -73,13 +73,15 @@ public class RoomController {
     }
 
     @PostMapping("/{roomId}/join")
-    public Participant join(@PathVariable("roomId") Room room) {
+    public boolean join(@PathVariable("roomId") Room room, @RequestBody(required = false) String password) {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
         Participant participant = participantService.byClientAndRoom(client, room);
         if (participant == null) {
-            participant = participantService.add(room, client);
+            if (room.getPassword() == null || room.getPassword().equals(password))
+                participant = participantService.add(room, client);
         }
-        return participant;
+
+        return participant!=null;
     }
     @PostMapping("/{roomId}/leave")
     public void leave(@PathVariable("roomId") Room room) {
@@ -118,7 +120,7 @@ public class RoomController {
         Map<String, Object> loaded = new HashMap<>();
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
         Participant participant = participantService.byClientAndRoom(client, room);
-        loaded.put("participant", participant);
+        loaded.put("joined", participant!=null);
         loaded.put("room", room);
         return loaded;
     }
@@ -126,7 +128,12 @@ public class RoomController {
     @GetMapping("/joined")
     public List<Room> joined() {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        return roomService.byClient(client);
+        return roomService.joinedByClient(client);
+    }
+    @GetMapping("/moderated")
+    public List<Room> moderated() {
+        Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
+        return roomService.moderatedByClient(client);
     }
 
 }

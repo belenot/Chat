@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface RoomRepository extends JpaRepository<Room, Integer> {
     public List<Room> findByParticipantsClient(Client client);
-    public List<Room> findByModerators(Moderator moderator);
+    public List<Room> findByModeratorsClient(Client client);
     public Room findByTitle(String title);
 
 }
