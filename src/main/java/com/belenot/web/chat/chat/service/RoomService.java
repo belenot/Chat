@@ -39,6 +39,10 @@ public class RoomService {
     public List<Room> all() {
         return roomRepository.findAll();
     }
+
+    public Room byId(int id) {
+        return roomRepository.findById(id).orElse(null);
+    }
     // Need query optimization(batching)
     @Transactional
     public void delete(Room room) {

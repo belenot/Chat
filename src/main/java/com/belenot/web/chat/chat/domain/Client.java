@@ -33,6 +33,8 @@ public class Client implements Deletable {
     @NaturalId
     @NonNull
     private String login;
+    private String name;
+    private int age;
     @JsonIgnore
     @NonNull
     private String password;

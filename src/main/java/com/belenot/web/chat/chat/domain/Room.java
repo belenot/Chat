@@ -6,6 +6,8 @@ import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
 import javax.persistence.OneToMany;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -15,6 +17,8 @@ import org.hibernate.annotations.NaturalId;
 import lombok.Getter;
 import lombok.Setter;
 
+
+@NamedEntityGraph(name="Room.participants", attributeNodes = @NamedAttributeNode("participants"))
 @Entity
 @Getter
 @Setter

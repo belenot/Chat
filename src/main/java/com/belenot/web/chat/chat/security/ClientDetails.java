@@ -6,7 +6,6 @@ import java.util.List;
 
 import com.belenot.web.chat.chat.domain.Admin;
 import com.belenot.web.chat.chat.domain.Client;
-import com.belenot.web.chat.chat.domain.Moderator;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

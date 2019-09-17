@@ -7,16 +7,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.belenot.web.chat.chat.domain.Admin;
 import com.belenot.web.chat.chat.domain.Client;
+import com.belenot.web.chat.chat.security.ClientDetails;
 import com.belenot.web.chat.chat.service.ClientService;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -49,7 +48,7 @@ public class HomeController {
 
     @GetMapping("/chat")
     public String chat(Model model) {
-        model.addAttribute("client", SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        model.addAttribute("client", ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient());
         return "chat";
     }
     

@@ -10,7 +10,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
 import com.belenot.web.chat.chat.domain.support.Deletable;
-import com.belenot.web.chat.chat.domain.support.Subject;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -43,5 +43,6 @@ public class Participant implements Deletable {
     @ManyToOne
     private Room room;
     @OneToMany(mappedBy = "participant")
+    @JsonIgnore
     private List<Message> messages;
 }
