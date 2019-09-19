@@ -12,6 +12,7 @@ import com.belenot.web.chat.chat.repository.MessageRepository;
 import com.belenot.web.chat.chat.repository.ParticipantRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -42,7 +43,7 @@ public class MessageService {
     }
 
     public List<Message> byRoom(Room room) {
-        return messageRepository.findByRoom(room);
+        return messageRepository.findByParticipantRoom(room);
     }
 
     public Message update(Message message) {
@@ -52,6 +53,16 @@ public class MessageService {
 
     public List<Message> all() {
         return messageRepository.findAll();
+    }
+
+    public List<Message> previous(Room room, Message message) {    
+        return messageRepository.findTop10ByParticipantRoomAndIdLessThanOrderByIdDesc(room, message.getId());
+    }
+    public List<Message> last(Room room) {
+        return messageRepository.findTop10ByParticipantRoomOrderByIdDesc(room);
+    }
+    public List<Message> page(Room room, Pageable pageable) {
+        return messageRepository.findByParticipantRoom(room, pageable);
     }
 
     public void delete(Message message) {

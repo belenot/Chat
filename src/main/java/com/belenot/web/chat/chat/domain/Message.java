@@ -23,8 +23,6 @@ public class Message {
     private int id;
     @ManyToOne
     private Participant participant;
-    @ManyToOne
-    private Room room;
     @JsonFormat(pattern = "HH:mm:ss")
     private LocalDateTime time = LocalDateTime.now();
     @Type(type =  "materialized_clob")

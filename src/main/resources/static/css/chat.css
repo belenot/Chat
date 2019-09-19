@@ -193,9 +193,10 @@ header.header .nav-btn:first-child:hover {
     padding: 0px !important;
     font-size: 16pt;
     align-self: stretch;
-    
+    overflow: hidden;
 }
 .chat .chat-header {
+    flex: 1;
     display: flex;
     justify-content: space-between;
     padding: 5px;
@@ -211,10 +212,11 @@ header.header .nav-btn:first-child:hover {
     box-sizing: border-box;
     width: 100%;
     border-width: 1px 0 1px 0;
-    flex: 1;
+    flex: 18;
     padding: 15px;
     display: flex;
     flex-direction: column;
+    overflow-y: scroll;
 }
 .chat .message-list .message {
     display: grid;
@@ -250,6 +252,7 @@ header.header .nav-btn:first-child:hover {
     font-size: 18pt;
 }
 .chat .send-form {
+    flex: 1;
     display: flex;
 }
 .chat .send-form input[type='search'] {

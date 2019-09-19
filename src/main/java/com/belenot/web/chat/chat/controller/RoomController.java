@@ -6,16 +6,20 @@ import java.util.Map;
 
 import com.belenot.web.chat.chat.domain.Admin;
 import com.belenot.web.chat.chat.domain.Client;
+import com.belenot.web.chat.chat.domain.Message;
 import com.belenot.web.chat.chat.domain.Moderator;
 import com.belenot.web.chat.chat.domain.Participant;
 import com.belenot.web.chat.chat.domain.Room;
+import com.belenot.web.chat.chat.domain.support.wrap.MessageWrapper;
 import com.belenot.web.chat.chat.security.ClientDetails;
 import com.belenot.web.chat.chat.service.ClientService;
+import com.belenot.web.chat.chat.service.MessageService;
 import com.belenot.web.chat.chat.service.ModeratorService;
 import com.belenot.web.chat.chat.service.ParticipantService;
 import com.belenot.web.chat.chat.service.RoomService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,6 +44,10 @@ public class RoomController {
     private ModeratorService moderatorService;
     @Autowired
     private ParticipantService participantService;
+    @Autowired
+    private MessageService messageService;
+    @Autowired
+    private MessageWrapper messageWrapper;
 
     @PostMapping
     public Room create(@RequestBody Room room) {
@@ -134,6 +142,11 @@ public class RoomController {
     public List<Room> moderated() {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
         return roomService.moderatedByClient(client);
+    }
+
+    @GetMapping("/{roomId}/message/page")
+    public List<Map<String, Object>> messagePage(@PathVariable("roomId") Room room, Pageable pageable) {
+        return messageWrapper.wrapUp(messageService.page(room, pageable));
     }
 
 }
