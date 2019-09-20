@@ -100,8 +100,8 @@ html {
     width: 80%;
     margin: auto;
     height: 80%;
-    background-image: url("file:///home/belenot/Desktop/Opera-Background-Light-Blue.jpg");
-    background-size: 100%;
+    background-image: url("/img/Background-Light-13.jpg");
+    background-size: cover;
 }
 
 body {
@@ -224,8 +224,9 @@ header.header .nav-btn:first-child:hover {
     grid-template-rows: 1fr auto;
     padding: 5px;
     margin-top: 15px;
-    width: 70%;
-    
+    max-width: 70%;
+    min-width: 10%;
+    word-wrap: break-word;
 
 }
 .chat .message-list .own-message {
