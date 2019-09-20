@@ -6,11 +6,11 @@ import java.util.Map;
 
 import com.belenot.web.chat.chat.domain.Admin;
 import com.belenot.web.chat.chat.domain.Client;
-import com.belenot.web.chat.chat.domain.Message;
 import com.belenot.web.chat.chat.domain.Moderator;
 import com.belenot.web.chat.chat.domain.Participant;
 import com.belenot.web.chat.chat.domain.Room;
 import com.belenot.web.chat.chat.domain.support.wrap.MessageWrapper;
+import com.belenot.web.chat.chat.repository.support.OffsetPageable;
 import com.belenot.web.chat.chat.security.ClientDetails;
 import com.belenot.web.chat.chat.service.ClientService;
 import com.belenot.web.chat.chat.service.MessageService;
@@ -145,8 +145,8 @@ public class RoomController {
     }
 
     @GetMapping("/{roomId}/message/page")
-    public List<Map<String, Object>> messagePage(@PathVariable("roomId") Room room, Pageable pageable) {
-        return messageWrapper.wrapUp(messageService.page(room, pageable));
+    public List<Map<String, Object>> messagePage(@PathVariable("roomId") Room room, Pageable pageable, @RequestParam("offset") long offset) {
+        return messageWrapper.wrapUp(messageService.page(room, OffsetPageable.of(pageable, offset)));
     }
 
 }
