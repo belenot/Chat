@@ -1,52 +1,57 @@
 package com.belenot.web.chat.chat.controller;
 
-import java.time.LocalDateTime;
-
-import com.belenot.web.chat.chat.domain.ChatClient;
-import com.belenot.web.chat.chat.domain.ChatMessage;
-import com.belenot.web.chat.chat.service.ChatClientService;
-import com.belenot.web.chat.chat.service.ChatMessageService;
+import com.belenot.web.chat.chat.domain.Client;
+import com.belenot.web.chat.chat.domain.Message;
+import com.belenot.web.chat.chat.domain.Participant;
+import com.belenot.web.chat.chat.domain.Room;
+import com.belenot.web.chat.chat.domain.support.wrap.MessageWrapper;
+import com.belenot.web.chat.chat.security.ClientDetails;
+import com.belenot.web.chat.chat.service.ClientService;
+import com.belenot.web.chat.chat.service.MessageService;
+import com.belenot.web.chat.chat.service.ParticipantService;
+import com.belenot.web.chat.chat.service.RoomService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.SessionAttribute;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.socket.config.WebSocketMessageBrokerStats;
 
 @Controller
-@RequestMapping("/chat")
+@MessageMapping("/chat")
 public class ChatController {
-
     @Autowired
-    private ChatMessageService chatMessageService;
+    private MessageService messageService;
     @Autowired
-    private ChatClientService chatClientService;
+    private ClientService clientService;
+    @Autowired
+    private ParticipantService participantService;
+    @Autowired
+    private RoomService roomService;
+    @Autowired
+    private SimpMessagingTemplate smt;
+    @Autowired
+    private WebSocketMessageBrokerStats wsmbs;
+    @Autowired
+    private MessageWrapper messageWrapper;
     
-    @GetMapping
-    public String chatPage(@SessionAttribute("client") ChatClient client, Model model) {
-        model.addAttribute("client", client);
-        model.addAttribute("messages", chatMessageService.all());
-        return "chat";
+    @MessageMapping("/room/{roomId}/message/new")
+    public void send(@Payload String text, @DestinationVariable("roomId") int roomId) {
+        Room room = roomService.byId(roomId);
+        if (room == null) throw new MessagingException("Room doesn't exists");
+        Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
+        Participant participant = participantService.byClientAndRoom(client, room);
+        if (participant == null) {
+            throw new HttpClientErrorException(HttpStatus.FORBIDDEN);
+        }
+        Message message = messageService.add(text, client, room);
+        smt.convertAndSend("/topic/chat/room/"+roomId+"/message", messageWrapper.wrapUp(message));
     }
-    // Redo within separete class for ws
-    @MessageMapping("/message")
-    @SendTo("/topic/message")
-    public ChatMessage addMessage(ChatMessage message, SimpMessageHeaderAccessor accessor) {
-        ChatClient client = (ChatClient) accessor.getSessionAttributes().get("client");
-        message.setClient(client);
-        message.setTime(LocalDateTime.now());
-        return chatMessageService.add(message);
-    }
-    @MessageMapping("/client")
-    @SendTo("/topic/client")
-    public ChatClient changeClientStatus(String online, SimpMessageHeaderAccessor accessor) {
-        ChatClient client = (ChatClient) accessor.getSessionAttributes().get("client");
-        if (!online.equals("offline") && !online.equals("online")) return client;
-        client.setOnline(online.equals("online"));
-        return chatClientService.add(client);
-    }
+
 }

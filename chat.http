@@ -1,23 +1,45 @@
 ###
 @host = http://localhost:8080
-GET {{host}}/registration
-###
-POST {{host}}/registration?login=l1&password=p
-###
-POST {{host}}/authorization?login=l&password=p
-###
-POST {{host}}/message
-Content-Type: application/json
-
-{
-    "text": "hey"
-}
+GET {{host}}/login
 ###
 GET {{host}}/chat
 ###
-GET {{host}}/logout
+POST {{host}}/login?username=user&password=password&_csrf=6be171e6-81c8-454d-8e01-c2ff8a13ed2d
 ###
-GET {{host}}/client
+POST {{host}}/login?username=user2&password=password&_csrf=3e94ed29-1d78-4110-9047-786f713425b4
 ###
-GET {{host}}/client/online
+POST {{host}}/room/
+Content-Type: application/json
+X-CSRF-TOKEN: 098081e9-2231-4cae-88bc-8731cfa932d2
 
+{
+    "title": "newRoom"
+}
+###
+GET {{host}}/room
+###
+GET {{host}}/room/2/moderator/participant
+###
+POST {{host}}/room/7/moderator/ban/9
+X-CSRF-TOKEN: 2f3be354-880e-41f0-bda3-1b5b8cccfe16
+###
+POST {{host}}/room/2/join
+X-CSRF-TOKEN: 098081e9-2231-4cae-88bc-8731cfa932d2
+###
+POST {{host}}/room/update
+Content-Type: application/json
+X-CSRF-TOKEN: 67c97e2d-0ebc-418d-a22f-0f9681be4871
+
+{
+    "id": 4,
+    "title": "newRoom"
+}
+###
+POST {{host}}/room/delete/5
+X-CSRF-TOKEN: 67c97e2d-0ebc-418d-a22f-0f9681be4871
+###
+POST {{host}}/room/2/participant/delete/1
+X-CSRF-TOKEN: a765d588-77c4-4f29-9741-ba3dc52ff5b3
+###
+POST {{host}}/logout
+X-CSRF-TOKEN: 4b5e27bc-d237-427e-b8c3-2f27933fd482

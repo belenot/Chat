@@ -1,22 +1,24 @@
+<!DOCTYPE html>
 <html>
-    <title>Chat</title>
-    <link rel="stylesheet" href="/css/chat.css" type="text/css" />
-    <script src="/js/bundle.js"></script>
+    <head>
+        <title>Chat</title>
+        <link rel="stylesheet" type="text/css" href="/css/chat.css">
+        <script src="/js/bundle.js"></script>
+        <script>
+            var settingsHidden = true;
+            function showSettings() {
+                settingsHidden = !settingsHidden;
+                document.querySelector('.settings-pane').style.display = settingsHidden?'none':'grid';
+            }
+        </script>
+        <meta name="csrf-header" th:attr="content=${_csrf.headerName}" />
+        <meta name="csrf-token" th:attr="content=${_csrf.token}" />
+        <meta name="login" th:attr="content=${client.getLogin()}" />
+    </head>
     <body>
-        <h1>chat</h1>
-        <div class="chat-container">
-            <section id="chat-pane">
-                
-            </section>
-            <form id="logout-form" action="/logout" >
-                <section id="client-info">
-                    <label th:text="${client.login}">Login:</label>
-                </section>
-                <input type="submit" value="Sign Out" />
-            </form>
-            <section id="chat-client-list-pane">
-                
-            </section>
+        <div id="react-app">
+            
         </div>
+        
     </body>
 </html>
