@@ -5,10 +5,11 @@ import com.belenot.web.chat.chat.security.ClientDetails;
 import com.belenot.web.chat.chat.service.ClientService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -18,26 +19,17 @@ public class ClientController {
     @Autowired
     private ClientService clientService;
 
-    @PostMapping("/update/name")
-    public Client name(@RequestParam("name") String name) {
+    // Security: authenticated clients
+    @PostMapping(path="/update", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Client update(@RequestBody Client updatedClient) {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        client.setName(name);
+        if (updatedClient.getAge() > 0) client.setAge(updatedClient.getAge());
+        if (updatedClient.getName() != null && !updatedClient.getName().equals("")) client.setName(updatedClient.getName());
+        if (updatedClient.getSecondName() != null && !updatedClient.getSecondName().equals("")) client.setSecondName(updatedClient.getSecondName());
         return clientService.update(client);
     }
 
-    @PostMapping("/update/age")
-    public Client age(@RequestParam("age") int age) {
-        Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        client.setAge(age);
-        return clientService.update(client);
-    }
-
-    @PostMapping("/update/password")
-    public Client age(@RequestParam("password") String password) {
-        // Comming soon
-        return null;
-    }
-
+    // Security: authenticated clients
     @PostMapping("/delete")
     public void delete() {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();

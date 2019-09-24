@@ -1,15 +1,15 @@
 package com.belenot.web.chat.chat.controller;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.belenot.web.chat.chat.domain.Admin;
 import com.belenot.web.chat.chat.domain.Client;
 import com.belenot.web.chat.chat.domain.Moderator;
 import com.belenot.web.chat.chat.domain.Participant;
 import com.belenot.web.chat.chat.domain.Room;
 import com.belenot.web.chat.chat.domain.support.wrap.MessageWrapper;
+import com.belenot.web.chat.chat.domain.support.wrap.RoomWrapper;
+import com.belenot.web.chat.chat.filter.RequestContextFilter.ContextParam;
 import com.belenot.web.chat.chat.repository.support.OffsetPageable;
 import com.belenot.web.chat.chat.security.ClientDetails;
 import com.belenot.web.chat.chat.service.ClientService;
@@ -48,49 +48,45 @@ public class RoomController {
     private MessageService messageService;
     @Autowired
     private MessageWrapper messageWrapper;
+    @Autowired
+    private RoomWrapper roomWrapper;
 
+    // Validation: Title not null, title not taken
+    // Security: client
     @PostMapping
     public Room create(@RequestBody Room room) {
-        Client client = ((ClientDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        if (client != null && !(client instanceof Admin)) {
-            roomService.add(room);
-            Moderator moderator = new Moderator(client);
-            room.addModerator(moderator);
-            moderatorService.add(moderator);
-            roomService.update(room);
-        } else {
-            roomService.add(room);
-        }
+        Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
+        roomService.add(room);
+        Moderator moderator = new Moderator(client);
+        room.addModerator(moderator);
+        moderatorService.add(moderator);
+        roomService.update(room);
         return room;
     }
 
-    // Maybe it unneccessary?
-    @PostMapping("/update")
-    public Room update(@RequestBody Room room) {
-        return roomService.update(room);
-    }
-
+    // Security: Client is moderator of this room
     @PostMapping("/{roomId}/moderator/delete")
     public void delete(@PathVariable("roomId") Room room) {
         roomService.delete(room);
     }
 
-    @GetMapping
-    public List<Room> rooms() {
-        return roomService.all();
+    // Security: joined client
+    @GetMapping("/{roomId}/clients")
+    public List<Participant> getClients(@PathVariable("roomId") Room room) {
+        return participantService.byRoom(room);
     }
 
+    // Security: client not joined
     @PostMapping("/{roomId}/join")
     public boolean join(@PathVariable("roomId") Room room, @RequestBody(required = false) String password) {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
         Participant participant = participantService.byClientAndRoom(client, room);
-        if (participant == null) {
-            if (room.getPassword() == null || room.getPassword().equals(password))
-                participant = participantService.add(room, client);
-        }
-
+        if (room.getPassword() == null || room.getPassword().equals(password))
+            participant = participantService.add(room, client);
         return participant!=null;
     }
+
+    // Security: client is joined
     @PostMapping("/{roomId}/leave")
     public void leave(@PathVariable("roomId") Room room) {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
@@ -100,50 +96,47 @@ public class RoomController {
         }
         participantService.delete(participant, client);
     }
-    // Need secure: only room's moderators and admin are allowed
+
+    // Security: active client is room's moderator
+    // Validation: params not null
     @PostMapping("/{roomId}/moderator/ban/{clientId}")
-    public Participant  ban(@PathVariable("roomId") Room room, @PathVariable("clientId") Client client) {
-        Client moderatorClient = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        if (moderatorClient == null) throw new HttpClientErrorException(HttpStatus.FORBIDDEN);
-        Moderator moderator = moderatorService.byClientAndRoom(moderatorClient, room);
+    public void ban(@PathVariable("roomId") Room room, @PathVariable("clientId") Client client) {
+        Client activeClient = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
+        Moderator moderator = moderatorService.byClientAndRoom(activeClient, room);
         if (moderator == null) throw new HttpClientErrorException(HttpStatus.FORBIDDEN);
         Participant participant = participantService.byClientAndRoom(client, room);
         if (participant == null) throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
         participant.setBanned(true);
-        return participantService.update(participant);
+        participantService.update(participant);
     }
 
-    @GetMapping("/{roomId}/moderator/participant")
-    public List<Client> participants(@PathVariable("roomId") Room room) {
-        return clientService.byRoom(room);
+    // Security: any authenticated client
+    // Validation: title not null and not empty
+    @PostMapping("/search")
+    public List<Room> searchRooms(@RequestParam("title") String title) {
+        return roomService.byTitleLike(title);
     }
 
-    @GetMapping("/search")
-    public Room searchedRooms(@RequestParam("title") String title) {
-        return roomService.byTitle(title);
-    }
-
+    // Security: client is joined
     @GetMapping("/{roomId}")
-    public Map<String, Object> load(@PathVariable("roomId") Room room) {
-        Map<String, Object> loaded = new HashMap<>();
-        Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        Participant participant = participantService.byClientAndRoom(client, room);
-        loaded.put("joined", participant!=null);
-        loaded.put("room", room);
-        return loaded;
+    public Room load(@PathVariable("roomId") Room room) {
+        return room;
     }
 
+    // Security: any authenticated client 
     @GetMapping("/joined")
     public List<Room> joined() {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
         return roomService.joinedByClient(client);
     }
+    // Security: any authenticated client
     @GetMapping("/moderated")
     public List<Room> moderated() {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
         return roomService.moderatedByClient(client);
     }
 
+    // Security: client is joined
     @GetMapping("/{roomId}/message/page")
     public List<Map<String, Object>> messagePage(@PathVariable("roomId") Room room, Pageable pageable, @RequestParam("offset") long offset) {
         return messageWrapper.wrapUp(messageService.page(room, OffsetPageable.of(pageable, offset)));

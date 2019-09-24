@@ -6,9 +6,8 @@ import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.NamedAttributeNode;
-import javax.persistence.NamedEntityGraph;
 import javax.persistence.OneToMany;
+import javax.persistence.CascadeType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -20,11 +19,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 
-@NamedEntityGraph(name="Room.participants", attributeNodes = @NamedAttributeNode("participants"))
 @Entity
 @Getter
 @Setter
 public class Room {
+    
     @Id
     @GeneratedValue
     private int id;
@@ -33,14 +32,13 @@ public class Room {
     @JsonIgnore
     @JsonProperty(access = Access.WRITE_ONLY)
     private String password;
-
-    @OneToMany(mappedBy = "room")
+    @OneToMany(mappedBy = "room", cascade = CascadeType.REMOVE)
     @JsonIgnore
     private List<Participant> participants = new ArrayList<>();
-    @OneToMany(mappedBy = "room")
+    @OneToMany(mappedBy = "room", cascade = CascadeType.REMOVE)
     @JsonIgnore
     private List<Moderator> moderators = new ArrayList<>();
-    @OneToMany(mappedBy = "room")
+    @OneToMany(mappedBy = "room", cascade = CascadeType.REMOVE)
     @JsonIgnore
     private List<Participant> banned = new ArrayList<>();
 

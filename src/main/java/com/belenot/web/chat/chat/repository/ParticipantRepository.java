@@ -15,5 +15,6 @@ public interface ParticipantRepository extends JpaRepository<Participant, Intege
     public List<Participant> findByClient(Client client);
     public List<Participant> findByRoom(Room room);
     public Participant findByClientAndRoom(Client client, Room room);
+    public void deleteByRoom(Room room);
 
 }

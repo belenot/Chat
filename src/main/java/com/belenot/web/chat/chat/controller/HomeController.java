@@ -27,11 +27,13 @@ public class HomeController {
     @Autowired
     private ClientService clientService;
 
+    // Security: Any non authenticated
     @GetMapping("/login")
     public String login() {
         return "login";
     }
 
+    // Security: Any non authenticated
     @PostMapping("/signup")
     public void signup(Client client, @RequestParam("adminkey") String key, HttpServletResponse response) 
         throws ServletException, IOException {
@@ -46,6 +48,7 @@ public class HomeController {
         response.sendRedirect("/login");
     }
 
+    // Security: authenticated client
     @GetMapping("/chat")
     public String chat(Model model) {
         model.addAttribute("client", ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient());

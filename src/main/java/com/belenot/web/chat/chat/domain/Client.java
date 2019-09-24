@@ -34,6 +34,7 @@ public class Client implements Deletable {
     @NonNull
     private String login;
     private String name;
+    private String secondName;
     private int age;
     @JsonIgnore
     @NonNull
@@ -43,12 +44,31 @@ public class Client implements Deletable {
     private boolean deleted;
     private LocalDateTime deletedTime;
     @ManyToOne
+    @JsonIgnore
     private Client deleter;
 
-    @OneToMany(mappedBy = "client")
+    @OneToMany(mappedBy = "client", orphanRemoval = true)
     @JsonIgnore
     private List<Participant> participants;
-    @OneToMany(mappedBy = "client")
+    @OneToMany(mappedBy = "client", orphanRemoval = true)
     @JsonIgnore
     private List<Moderator> moderators;
+
+    public void addModerator(Moderator moderator) {
+        moderators.add(moderator);
+        moderator.setClient(this);
+    }
+    public void removeModerator(Moderator moderator) {
+        moderators.remove(moderator);
+        moderator.setClient(null);
+    }
+    public void addParticipant(Participant participant) {
+        participants.add(participant);
+        participant.setClient(this);
+    }
+    public void removeParticipant(Participant participant) {
+        participants.remove(participant);
+        participant.setClient(null);
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.belenot.web.chat.chat.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.belenot.web.chat.chat.domain.Client;
@@ -8,6 +9,7 @@ import com.belenot.web.chat.chat.repository.ClientRepository;
 import com.belenot.web.chat.chat.security.ClientDetails;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -38,8 +40,12 @@ public class ClientService implements UserDetailsService {
         return clientRepository.save(client);
     }
 
+    // Security: admin or client itself
     public void delete(Client client) {
-        clientRepository.delete(client);
+        client.setDeleted(true);
+        client.setDeletedTime(LocalDateTime.now());
+        client.setDeleter(((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient());
+        clientRepository.save(client);
     }
 
     @Override

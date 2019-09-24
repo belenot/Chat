@@ -13,6 +13,7 @@ import com.belenot.web.chat.chat.repository.ParticipantRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,6 +24,8 @@ public class MessageService {
     private MessageRepository messageRepository;
     @Autowired
     private ParticipantRepository participantRepository;
+    @Autowired
+    private SimpMessagingTemplate smt;
     
     public Message add(Message message) {
         if (message.getText().length() > 0)
@@ -35,6 +38,7 @@ public class MessageService {
         Participant participant = participantRepository.findByClientAndRoom(client, room);
         message.setText(text);
         message.setParticipant(participant);
+        smt.convertAndSend("/topic/chat/room/"+room.getId()+ "/message", message);
         return messageRepository.save(message);
     }
 

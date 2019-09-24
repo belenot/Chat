@@ -35,23 +35,20 @@ public class ChatController {
     @Autowired
     private RoomService roomService;
     @Autowired
-    private SimpMessagingTemplate smt;
-    @Autowired
     private WebSocketMessageBrokerStats wsmbs;
-    @Autowired
-    private MessageWrapper messageWrapper;
     
+    // Security: Client is joined
+    // Validation: text is not null and not empty
     @MessageMapping("/room/{roomId}/message/new")
     public void send(@Payload String text, @DestinationVariable("roomId") int roomId) {
         Room room = roomService.byId(roomId);
         if (room == null) throw new MessagingException("Room doesn't exists");
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
         Participant participant = participantService.byClientAndRoom(client, room);
-        if (participant == null) {
+        if (participant == null || participant.isDeleted() || participant.isBanned()) {
             throw new HttpClientErrorException(HttpStatus.FORBIDDEN);
         }
         Message message = messageService.add(text, client, room);
-        smt.convertAndSend("/topic/chat/room/"+roomId+"/message", messageWrapper.wrapUp(message));
     }
 
 }

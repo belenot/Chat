@@ -8,6 +8,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.CascadeType;
 
 import com.belenot.web.chat.chat.domain.support.Deletable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -26,6 +27,7 @@ import lombok.Setter;
 public class Participant implements Deletable {
     @Id
     @GeneratedValue
+    @JsonIgnore
     private int id;
     private boolean banned;
     
@@ -41,8 +43,9 @@ public class Participant implements Deletable {
     private Client client;
     @NonNull
     @ManyToOne
+    @JsonIgnore
     private Room room;
-    @OneToMany(mappedBy = "participant")
+    @OneToMany(mappedBy = "participant", cascade = CascadeType.REMOVE)
     @JsonIgnore
     private List<Message> messages;
 }
