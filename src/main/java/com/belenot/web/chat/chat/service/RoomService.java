@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.belenot.web.chat.chat.domain.Client;
 import com.belenot.web.chat.chat.domain.Moderator;
+import com.belenot.web.chat.chat.domain.Participant;
 import com.belenot.web.chat.chat.domain.Room;
 import com.belenot.web.chat.chat.repository.ModeratorRepository;
 import com.belenot.web.chat.chat.repository.ParticipantRepository;
@@ -21,6 +22,8 @@ public class RoomService {
     private ModeratorRepository moderatorRepository;
     @Autowired
     private ParticipantRepository participantRepository;
+    @Autowired
+    private ParticipantService participantService;
 
     public Room add(Room room) {
         if (room.getPassword() == null || room.getPassword().length() == 0) {
@@ -31,21 +34,20 @@ public class RoomService {
 
     // Room title is not taken and not null
     // Client is persisted
+    @Transactional
     public Room create(Client client, Room room) {
         if (room.getPassword().length() == 0) {
             room.setPassword(null);
         }
         Moderator moderator = new Moderator();
         client.addModerator(moderator);
-        moderatorRepository.save(moderator);
+        // moderatorRepository.save(moderator);
         room.addModerator(moderator);
         roomRepository.save(room);
         moderatorRepository.save(moderator);
         return room;
     }
 
-    // Need query optimization(batching), need jpa query
-    // Room is persisted
     public void delete(Room room) {
         roomRepository.delete(room);
     }
@@ -79,5 +81,27 @@ public class RoomService {
     }
     public List<Room> moderatedByClient(Client client) {
         return roomRepository.findByModeratorsClient(client);
+    }
+    public Participant join(Room room, Client client, String password) {
+        Participant participant = participantService.byClientAndRoom(client, room);
+        if (participant == null) {
+            if (room.getPassword() == null || room.getPassword().equals(password)) {
+                // Cast event
+                return participantService.add(room, client);
+            } else {
+                // Throw JoinException("Wrong password")
+                return null;
+            }
+        } else if (participant.isBanned()) {
+            // Throw JoinException("Banned")
+            return null;
+        } else if (participant.isDeleted()) {
+            participant.setDeleted(false);
+            // Cast event
+            return participantService.update(participant);
+        } else {
+            // Throw JoinException("Already joined")
+            return null;
+        }
     }
 }

@@ -8,12 +8,13 @@ import com.belenot.web.chat.chat.domain.Client;
 import com.belenot.web.chat.chat.domain.Message;
 import com.belenot.web.chat.chat.domain.Participant;
 import com.belenot.web.chat.chat.domain.Room;
+import com.belenot.web.chat.chat.event.MessageCreatedEvent;
 import com.belenot.web.chat.chat.repository.MessageRepository;
 import com.belenot.web.chat.chat.repository.ParticipantRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -25,7 +26,7 @@ public class MessageService {
     @Autowired
     private ParticipantRepository participantRepository;
     @Autowired
-    private SimpMessagingTemplate smt;
+    private ApplicationEventPublisher eventPublisher;
     
     public Message add(Message message) {
         if (message.getText().length() > 0)
@@ -38,8 +39,9 @@ public class MessageService {
         Participant participant = participantRepository.findByClientAndRoom(client, room);
         message.setText(text);
         message.setParticipant(participant);
-        smt.convertAndSend("/topic/chat/room/"+room.getId()+ "/message", message);
-        return messageRepository.save(message);
+        message = messageRepository.save(message);
+        eventPublisher.publishEvent(new MessageCreatedEvent(message));
+        return message;
     }
 
     public List<Message> byClient(Client client) {

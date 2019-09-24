@@ -35,7 +35,7 @@ public class Client implements Deletable {
     private String login;
     private String name;
     private String secondName;
-    private int age;
+    private Integer age;
     @JsonIgnore
     @NonNull
     private String password;

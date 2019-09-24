@@ -1,15 +1,15 @@
 package com.belenot.web.chat.chat.controller;
 
 import java.util.List;
-import java.util.Map;
 
 import com.belenot.web.chat.chat.domain.Client;
+import com.belenot.web.chat.chat.domain.Message;
 import com.belenot.web.chat.chat.domain.Moderator;
 import com.belenot.web.chat.chat.domain.Participant;
 import com.belenot.web.chat.chat.domain.Room;
-import com.belenot.web.chat.chat.domain.support.wrap.MessageWrapper;
-import com.belenot.web.chat.chat.domain.support.wrap.RoomWrapper;
-import com.belenot.web.chat.chat.filter.RequestContextFilter.ContextParam;
+import com.belenot.web.chat.chat.model.MessageModel;
+import com.belenot.web.chat.chat.model.ParticipantClientModel;
+import com.belenot.web.chat.chat.model.RoomModel;
 import com.belenot.web.chat.chat.repository.support.OffsetPageable;
 import com.belenot.web.chat.chat.security.ClientDetails;
 import com.belenot.web.chat.chat.service.ClientService;
@@ -46,22 +46,22 @@ public class RoomController {
     private ParticipantService participantService;
     @Autowired
     private MessageService messageService;
-    @Autowired
-    private MessageWrapper messageWrapper;
-    @Autowired
-    private RoomWrapper roomWrapper;
 
     // Validation: Title not null, title not taken
     // Security: client
+    // Note: possibly move to service layer? 
     @PostMapping
-    public Room create(@RequestBody Room room) {
+    public RoomModel create(@RequestBody RoomModel roomModel) {
+        Room room = roomModel.createDomain();
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
         roomService.add(room);
         Moderator moderator = new Moderator(client);
         room.addModerator(moderator);
         moderatorService.add(moderator);
         roomService.update(room);
-        return room;
+        roomModel = new RoomModel(room);
+        // roomModel = new RoomModel(roomService.create(client, room));
+        return roomModel;
     }
 
     // Security: Client is moderator of this room
@@ -72,21 +72,24 @@ public class RoomController {
 
     // Security: joined client
     @GetMapping("/{roomId}/clients")
-    public List<Participant> getClients(@PathVariable("roomId") Room room) {
-        return participantService.byRoom(room);
+    public List<ParticipantClientModel> getClients(@PathVariable("roomId") Room room) {
+        List<Participant> participants = participantService.byRoom(room);
+        return ParticipantClientModel.of(participants);
     }
 
     // Security: client not joined
+    // Note: possibly move to service layer? 
     @PostMapping("/{roomId}/join")
     public boolean join(@PathVariable("roomId") Room room, @RequestBody(required = false) String password) {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
         Participant participant = participantService.byClientAndRoom(client, room);
         if (room.getPassword() == null || room.getPassword().equals(password))
             participant = participantService.add(room, client);
-        return participant!=null;
+        return participant!=null;// In future return will be void
     }
 
     // Security: client is joined
+    // Note: possibly move to service layer? 
     @PostMapping("/{roomId}/leave")
     public void leave(@PathVariable("roomId") Room room) {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
@@ -99,6 +102,7 @@ public class RoomController {
 
     // Security: active client is room's moderator
     // Validation: params not null
+    // Note: possibly move to service layer? 
     @PostMapping("/{roomId}/moderator/ban/{clientId}")
     public void ban(@PathVariable("roomId") Room room, @PathVariable("clientId") Client client) {
         Client activeClient = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
@@ -113,33 +117,38 @@ public class RoomController {
     // Security: any authenticated client
     // Validation: title not null and not empty
     @PostMapping("/search")
-    public List<Room> searchRooms(@RequestParam("title") String title) {
-        return roomService.byTitleLike(title);
+    public List<RoomModel> searchRooms(@RequestParam("title") String title) {
+        List<Room> rooms = roomService.byTitleLike(title);
+        return RoomModel.of(rooms);
     }
 
     // Security: client is joined
+    // Note: possibly move to service layer? 
     @GetMapping("/{roomId}")
-    public Room load(@PathVariable("roomId") Room room) {
-        return room;
+    public RoomModel load(@PathVariable("roomId") Room room) {
+        return new RoomModel(room);
     }
 
     // Security: any authenticated client 
     @GetMapping("/joined")
-    public List<Room> joined() {
+    public List<RoomModel> joined() {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        return roomService.joinedByClient(client);
+        List<Room> rooms = roomService.joinedByClient(client);
+        return RoomModel.of(rooms);
     }
     // Security: any authenticated client
     @GetMapping("/moderated")
-    public List<Room> moderated() {
+    public List<RoomModel> moderated() {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        return roomService.moderatedByClient(client);
+        List<Room> rooms = roomService.moderatedByClient(client);
+        return RoomModel.of(rooms);
     }
 
     // Security: client is joined
     @GetMapping("/{roomId}/message/page")
-    public List<Map<String, Object>> messagePage(@PathVariable("roomId") Room room, Pageable pageable, @RequestParam("offset") long offset) {
-        return messageWrapper.wrapUp(messageService.page(room, OffsetPageable.of(pageable, offset)));
+    public List<MessageModel> messagePage(@PathVariable("roomId") Room room, Pageable pageable, @RequestParam("offset") long offset) {
+        List<Message> messages = messageService.page(room, OffsetPageable.of(pageable, offset));
+        return MessageModel.of(messages);
     }
 
 }

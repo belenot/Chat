@@ -1,6 +1,7 @@
 package com.belenot.web.chat.chat.controller;
 
 import com.belenot.web.chat.chat.domain.Client;
+import com.belenot.web.chat.chat.model.ClientModel;
 import com.belenot.web.chat.chat.security.ClientDetails;
 import com.belenot.web.chat.chat.service.ClientService;
 
@@ -21,12 +22,15 @@ public class ClientController {
 
     // Security: authenticated clients
     @PostMapping(path="/update", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Client update(@RequestBody Client updatedClient) {
+    public ClientModel update(@RequestBody ClientModel clientModel) {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        if (updatedClient.getAge() > 0) client.setAge(updatedClient.getAge());
-        if (updatedClient.getName() != null && !updatedClient.getName().equals("")) client.setName(updatedClient.getName());
-        if (updatedClient.getSecondName() != null && !updatedClient.getSecondName().equals("")) client.setSecondName(updatedClient.getSecondName());
-        return clientService.update(client);
+        // if (updatedClient.getAge() > 0) client.setAge(updatedClient.getAge());
+        // if (updatedClient.getName() != null && !updatedClient.getName().equals("")) client.setName(updatedClient.getName());
+        // if (updatedClient.getSecondName() != null && !updatedClient.getSecondName().equals("")) client.setSecondName(updatedClient.getSecondName());
+        clientModel.updateDomain(client);
+        client = clientService.update(client);
+        clientModel = new ClientModel(client);
+        return clientModel;
     }
 
     // Security: authenticated clients
