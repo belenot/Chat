@@ -49,18 +49,18 @@ public class RoomController {
 
     // Validation: Title not null, title not taken
     // Security: client
-    // Note: possibly move to service layer? 
+    // Note: possibly move to service layer? ...
     @PostMapping
     public RoomModel create(@RequestBody RoomModel roomModel) {
         Room room = roomModel.createDomain();
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        roomService.add(room);
-        Moderator moderator = new Moderator(client);
-        room.addModerator(moderator);
-        moderatorService.add(moderator);
-        roomService.update(room);
-        roomModel = new RoomModel(room);
-        // roomModel = new RoomModel(roomService.create(client, room));
+        // roomService.add(room);
+        // Moderator moderator = new Moderator(client);
+        // room.addModerator(moderator);
+        // moderatorService.add(moderator);
+        // roomService.update(room);
+        // roomModel = new RoomModel(room);
+        roomModel = new RoomModel(roomService.create(client, room));
         return roomModel;
     }
 
@@ -78,40 +78,43 @@ public class RoomController {
     }
 
     // Security: client not joined
-    // Note: possibly move to service layer? 
+    // Note: possibly move to service layer? ...
     @PostMapping("/{roomId}/join")
     public boolean join(@PathVariable("roomId") Room room, @RequestBody(required = false) String password) {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        Participant participant = participantService.byClientAndRoom(client, room);
-        if (room.getPassword() == null || room.getPassword().equals(password))
-            participant = participantService.add(room, client);
-        return participant!=null;// In future return will be void
+        // Participant participant = participantService.byClientAndRoom(client, room);
+        // if (room.getPassword() == null || room.getPassword().equals(password))
+        //     participant = participantService.add(room, client);
+        // return participant!=null;// In future return will be void
+        return roomService.join(room, client, password) != null;
     }
 
     // Security: client is joined
-    // Note: possibly move to service layer? 
+    // Note: possibly move to service layer? ...
     @PostMapping("/{roomId}/leave")
     public void leave(@PathVariable("roomId") Room room) {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        Participant participant = participantService.byClientAndRoom(client, room);
-        if (participant == null) {
-            return;
-        }
-        participantService.delete(participant, client);
+        // Participant participant = participantService.byClientAndRoom(client, room);
+        // if (participant == null) {
+        //     return;
+        // }
+        // participantService.delete(participant, client);
+        roomService.leave(room, client);
     }
 
     // Security: active client is room's moderator
     // Validation: params not null
-    // Note: possibly move to service layer? 
+    // Note: possibly move to service layer? ...
     @PostMapping("/{roomId}/moderator/ban/{clientId}")
-    public void ban(@PathVariable("roomId") Room room, @PathVariable("clientId") Client client) {
+    public void ban(@PathVariable("roomId") Room room, @PathVariable("clientId") Client client, @RequestParam(name="ban", defaultValue = "true") boolean ban){
         Client activeClient = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        Moderator moderator = moderatorService.byClientAndRoom(activeClient, room);
-        if (moderator == null) throw new HttpClientErrorException(HttpStatus.FORBIDDEN);
-        Participant participant = participantService.byClientAndRoom(client, room);
-        if (participant == null) throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
-        participant.setBanned(true);
-        participantService.update(participant);
+        // Moderator moderator = moderatorService.byClientAndRoom(activeClient, room);
+        // if (moderator == null) throw new HttpClientErrorException(HttpStatus.FORBIDDEN);
+        // Participant participant = participantService.byClientAndRoom(client, room);
+        // if (participant == null) throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        // participant.setBanned(true);
+        // participantService.update(participant);
+        roomService.ban(room, client, activeClient, ban);
     }
 
     // Security: any authenticated client
@@ -123,7 +126,6 @@ public class RoomController {
     }
 
     // Security: client is joined
-    // Note: possibly move to service layer? 
     @GetMapping("/{roomId}")
     public RoomModel load(@PathVariable("roomId") Room room) {
         return new RoomModel(room);
