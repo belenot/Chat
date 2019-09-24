@@ -5,7 +5,10 @@ import com.belenot.web.chat.chat.domain.Message;
 import com.belenot.web.chat.chat.domain.Participant;
 import com.belenot.web.chat.chat.domain.Room;
 import com.belenot.web.chat.chat.event.MessageCreatedEvent;
+import com.belenot.web.chat.chat.event.RoomEvent;
+import com.belenot.web.chat.chat.event.RoomEventInfo;
 import com.belenot.web.chat.chat.model.MessageModel;
+import com.belenot.web.chat.chat.model.RoomEventModel;
 import com.belenot.web.chat.chat.security.ClientDetails;
 import com.belenot.web.chat.chat.service.ClientService;
 import com.belenot.web.chat.chat.service.MessageService;
@@ -27,7 +30,7 @@ import org.springframework.web.socket.config.WebSocketMessageBrokerStats;
 
 @Controller
 @MessageMapping("/chat")
-public class ChatController implements ApplicationListener<MessageCreatedEvent> {
+public class ChatController implements ApplicationListener<RoomEvent<? extends RoomEventInfo>> {
     @Autowired
     private MessageService messageService;
     @Autowired
@@ -57,12 +60,22 @@ public class ChatController implements ApplicationListener<MessageCreatedEvent> 
         messageService.add(text, client, room);
     }
 
+    // @Override
+    // public void onApplicationEvent(MessageCreatedEvent event) {
+    //     Message message = ((Message) event.getSource());
+    //     Room room = message.getParticipant().getRoom();
+    //     MessageModel messageModel = new MessageModel(message);
+    //     smt.convertAndSend("/topic/chat/room/" + room.getId() + "/message", messageModel);
+    // }
+    
     @Override
-    public void onApplicationEvent(MessageCreatedEvent event) {
-        Message message = ((Message)event.getSource());
-        Room room = message.getParticipant().getRoom();
-        MessageModel messageModel = new MessageModel(message);
-        smt.convertAndSend("/topic/chat/room/" + room.getId() + "/message", messageModel);
+    public void onApplicationEvent(RoomEvent<?> event) {
+        String description = event.getDescription();
+        int roomId = event.getRoomId();
+        RoomEventInfo info = event.getSource();
+        RoomEventModel eventModel = new RoomEventModel(info, description);
+        smt.convertAndSend("/topic/chat/room/" + roomId, eventModel);
     }
+    
 
 }

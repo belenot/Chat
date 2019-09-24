@@ -9,6 +9,11 @@ import com.belenot.web.chat.chat.domain.Message;
 import com.belenot.web.chat.chat.domain.Participant;
 import com.belenot.web.chat.chat.domain.Room;
 import com.belenot.web.chat.chat.event.MessageCreatedEvent;
+import com.belenot.web.chat.chat.event.MessageSendedEventInfo;
+import com.belenot.web.chat.chat.event.RoomEvent;
+import com.belenot.web.chat.chat.event.RoomEventInfo;
+import com.belenot.web.chat.chat.model.ClientModel;
+import com.belenot.web.chat.chat.model.MessageModel;
 import com.belenot.web.chat.chat.repository.MessageRepository;
 import com.belenot.web.chat.chat.repository.ParticipantRepository;
 
@@ -40,7 +45,9 @@ public class MessageService {
         message.setText(text);
         message.setParticipant(participant);
         message = messageRepository.save(message);
-        eventPublisher.publishEvent(new MessageCreatedEvent(message));
+        RoomEventInfo roomEventInfo = new MessageSendedEventInfo(new MessageModel(message));
+        RoomEvent<RoomEventInfo> roomEvent = new RoomEvent<>(room.getId(), "MessageSended", roomEventInfo);
+        eventPublisher.publishEvent(roomEvent);
         return message;
     }
 

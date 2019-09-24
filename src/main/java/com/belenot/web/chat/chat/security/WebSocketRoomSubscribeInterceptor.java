@@ -6,10 +6,14 @@ import java.util.regex.Pattern;
 import com.belenot.web.chat.chat.domain.Client;
 import com.belenot.web.chat.chat.domain.Participant;
 import com.belenot.web.chat.chat.domain.Room;
+import com.belenot.web.chat.chat.event.ClientSubscribedEventInfo;
+import com.belenot.web.chat.chat.event.RoomEvent;
+import com.belenot.web.chat.chat.event.RoomEventInfo;
 import com.belenot.web.chat.chat.service.ParticipantService;
 import com.belenot.web.chat.chat.service.RoomService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -24,6 +28,8 @@ public class WebSocketRoomSubscribeInterceptor implements ChannelInterceptor {
     private RoomService roomService;
     @Autowired
     private ParticipantService participantService;
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -38,6 +44,9 @@ public class WebSocketRoomSubscribeInterceptor implements ChannelInterceptor {
         Participant participant = participantService.byClientAndRoom(client, room);
         // If client isn't participate in this room
         if (participant == null) throw new MessagingException(message, "Client not allowed to this room");
+        RoomEventInfo roomEventInfo = new ClientSubscribedEventInfo(client.getId(), true);
+        RoomEvent<RoomEventInfo> roomEvent = new RoomEvent<>(room.getId(), "ClientSubscribed", roomEventInfo);
+        eventPublisher.publishEvent(roomEvent);
         return message;
     }
 

@@ -6,12 +6,20 @@ import com.belenot.web.chat.chat.domain.Client;
 import com.belenot.web.chat.chat.domain.Moderator;
 import com.belenot.web.chat.chat.domain.Participant;
 import com.belenot.web.chat.chat.domain.Room;
+import com.belenot.web.chat.chat.event.ClientBannedEventInfo;
+import com.belenot.web.chat.chat.event.ClientJoinedEventInfo;
+import com.belenot.web.chat.chat.event.ClientLeavedEventInfo;
+import com.belenot.web.chat.chat.event.RoomDeletedEventInfo;
+import com.belenot.web.chat.chat.event.RoomEvent;
+import com.belenot.web.chat.chat.event.RoomEventInfo;
+import com.belenot.web.chat.chat.model.ClientModel;
 import com.belenot.web.chat.chat.repository.ClientRepository;
 import com.belenot.web.chat.chat.repository.ModeratorRepository;
 import com.belenot.web.chat.chat.repository.ParticipantRepository;
 import com.belenot.web.chat.chat.repository.RoomRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +37,8 @@ public class RoomService {
     private ParticipantService participantService;
     @Autowired
     private ModeratorService moderatorService;
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     public Room add(Room room) {
         if (room.getPassword() == null || room.getPassword().length() == 0) {
@@ -56,7 +66,11 @@ public class RoomService {
     }
 
     public void delete(Room room) {
+        int remainedRoomId = room.getId();
         roomRepository.delete(room);
+        RoomEventInfo roomEventInfo = new RoomDeletedEventInfo(remainedRoomId);
+        RoomEvent<RoomEventInfo> roomEvent = new RoomEvent<>(remainedRoomId, "RoomDeleted", roomEventInfo);
+        eventPublisher.publishEvent(roomEvent);
     }
 
     public Room byTitle(String title) {
@@ -94,16 +108,22 @@ public class RoomService {
         Participant participant = participantService.byClientAndRoom(client, room);
         if (participant == null) {
             if (room.getPassword() == null || room.getPassword().equals(password)) {
-                // Cast event
-                return participantService.add(room, client);
+                Participant newParticipant = participantService.add(room, client);
+                RoomEventInfo roomEventInfo = new ClientJoinedEventInfo(new ClientModel(client));
+                RoomEvent<RoomEventInfo> roomEvent = new RoomEvent<>(room.getId(), "ClientJoined", roomEventInfo);
+                eventPublisher.publishEvent(roomEvent);
+                return newParticipant;
             } else {
                 // Throw JoinException("Wrong password")
                 return null;
             }
         } else if (participant.isDeleted()) {
             participant.setDeleted(false);
-            // Cast event
-            return participantService.update(participant);
+            participantService.update(participant);
+            RoomEventInfo roomEventInfo = new ClientJoinedEventInfo(new ClientModel(client));
+            RoomEvent<RoomEventInfo> roomEvent = new RoomEvent<>(room.getId(), "ClientJoined", roomEventInfo);
+            eventPublisher.publishEvent(roomEvent);
+            return participant;
         } else {
             // Throw JoinException("Already joined")
             return null;
@@ -120,22 +140,24 @@ public class RoomService {
             return null;
         } else {
             participant.setDeleted(true);
+            RoomEventInfo roomEventInfo = new ClientLeavedEventInfo(client.getId());
+            RoomEvent<RoomEventInfo> roomEvent = new RoomEvent<RoomEventInfo>(room.getId(), "ClientLeaved", roomEventInfo);
+            eventPublisher.publishEvent(roomEvent);
             return participantService.update(participant);
         }
     }
     // Security: current client is moderator of room
     public Participant ban(Room room, Client client, Client deleter, boolean ban) {
-        // Moderator moderator = moderatorService.byClientAndRoom(deleter, room);
-        // if (moderator == null) {
-        //     // Throw AccesException("Not moderator")
-        //     return null;
-        // }
         Participant participant = participantService.byClientAndRoom(client, room);
         if (participant == null) {
             /// Throw BanException("Client not participant")
             return null;
         }
         participant.setBanned(ban);
-        return participantService.update(participant);
+        participantService.update(participant);
+        RoomEventInfo roomEventInfo = new ClientBannedEventInfo(client.getId(), ban);
+        RoomEvent<RoomEventInfo> roomEvent = new RoomEvent<>(room.getId(), "ClientBanned", roomEventInfo);
+        eventPublisher.publishEvent(roomEvent);
+        return participant;
     }
 }
