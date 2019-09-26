@@ -7,28 +7,62 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {    
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
+        http
+            .authorizeRequests()
                 .antMatchers("/css/**", "/js/**", "/img/**", "/signup", "/about").permitAll()
-                .antMatchers("/admin").hasRole("ADMIN")
-                .anyRequest().authenticated()
+                .antMatchers("/login", "/signup").anonymous()// WHA is ananamas?
+                .antMatchers("/room/{roomId}/join")
+                    .access("isAuthenticated() and not @participantAuthoritiesChecker.isJoined(#roomId, authentication)")
+                .antMatchers("/room/{roomId}/clients", "/room/{roomId}/messages")
+                    .access("isAuthenticated() and @participantAuthoritiesChecker.isJoined(#roomId, authentication) and not @participantAuthoritiesChecker.isBanned(#roomId, authentication)")
+                .antMatchers("/room/{roomId}/moderator/**")
+                    .access("isAuthenticated() and @participantAuthoritiesChecker.isModerator(#roomId, authentication)")
+                .antMatchers("/chat/**", "/room/create", "/room/search", "/room/joined", "/room/moderated", "/client/**").authenticated()
+                .antMatchers("/room/{roomId}", "/room/{roomId}/leave")
+                    .access("isAuthenticated() and @participantAuthoritiesChecker.isJoined(#roomId, authentication)")
+                .anyRequest().denyAll()
             .and()
-                .formLogin()
+            .formLogin()
                 .loginPage("/login").permitAll()
                 .successForwardUrl("/chat")
                 .defaultSuccessUrl("/chat")
             .and()
-                .logout()
+            .logout()
                 .logoutUrl("/logout")
             .and() //SockJS relax fallback
-                .headers()
+            .headers()
                 .frameOptions().sameOrigin()
             .and() //SockJS relax csrf endpoint
-                .csrf()
+            .csrf()
                 .ignoringAntMatchers("/chat/ws/**")
             .and();
     }
+    // @Override
+    // protected void configure(HttpSecurity http) throws Exception {
+    //     http.authorizeRequests()
+    //             .antMatchers("/css/**", "/js/**", "/img/**", "/signup", "/about").permitAll()
+    //             .antMatchers("/admin").hasRole("ADMIN")
+    //             .anyRequest().authenticated()
+    //         .and()
+    //             .formLogin()
+    //             .loginPage("/login").permitAll()
+    //             .successForwardUrl("/chat")
+    //             .defaultSuccessUrl("/chat")
+    //         .and()
+    //             .logout()
+    //             .logoutUrl("/logout")
+    //         .and() //SockJS relax fallback
+    //             .headers()
+    //             .frameOptions().sameOrigin()
+    //         .and() //SockJS relax csrf endpoint
+    //             .csrf()
+    //             .ignoringAntMatchers("/chat/ws/**")
+    //         .and();
+    // }
+    
     
 }

@@ -29,7 +29,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.socket.config.WebSocketMessageBrokerStats;
 
 @Controller
-@MessageMapping("/chat")
+@MessageMapping
 public class ChatController implements ApplicationListener<RoomEvent<? extends RoomEventInfo>> {
     @Autowired
     private MessageService messageService;
@@ -59,14 +59,6 @@ public class ChatController implements ApplicationListener<RoomEvent<? extends R
         }
         messageService.add(text, client, room);
     }
-
-    // @Override
-    // public void onApplicationEvent(MessageCreatedEvent event) {
-    //     Message message = ((Message) event.getSource());
-    //     Room room = message.getParticipant().getRoom();
-    //     MessageModel messageModel = new MessageModel(message);
-    //     smt.convertAndSend("/topic/chat/room/" + room.getId() + "/message", messageModel);
-    // }
     
     @Override
     public void onApplicationEvent(RoomEvent<?> event) {
@@ -74,7 +66,7 @@ public class ChatController implements ApplicationListener<RoomEvent<? extends R
         int roomId = event.getRoomId();
         RoomEventInfo info = event.getSource();
         RoomEventModel eventModel = new RoomEventModel(info, description);
-        smt.convertAndSend("/topic/chat/room/" + roomId, eventModel);
+        smt.convertAndSend("/topic/room/" + roomId, eventModel);
     }
     
 

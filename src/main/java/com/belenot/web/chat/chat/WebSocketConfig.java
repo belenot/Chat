@@ -1,6 +1,6 @@
 package com.belenot.web.chat.chat;
 
-import com.belenot.web.chat.chat.security.WebSocketRoomSubscribeInterceptor;
+import com.belenot.web.chat.chat.security.WebSocketRoomInterceptor;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +13,7 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 
 @Configuration
 @EnableWebSocketMessageBroker
+// Known bug: when client is banned, connection doesn't closed
 public class WebSocketConfig extends AbstractSecurityWebSocketMessageBrokerConfigurer {
 
     @Override
@@ -29,21 +30,23 @@ public class WebSocketConfig extends AbstractSecurityWebSocketMessageBrokerConfi
     @Override
     protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
         messages.anyMessage().authenticated()
-                .simpDestMatchers("/app/chat/**").hasRole("USER")
-                .simpSubscribeDestMatchers("/topic/chat/**").hasRole("USER");
+                .simpDestMatchers("/app/room/**").hasRole("USER")
+                .simpSubscribeDestMatchers("/topic/room/**").hasRole("USER");
+                // .simpDestMatchers("patterns").access("review ws security with this feature");
                 
         
     }
 
     @Override
     protected void customizeClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(webSocketRoomSubscribeInterceptor());
+        registration.interceptors(webSocketRoomInterceptor());
     }
 
     @Bean
-    public WebSocketRoomSubscribeInterceptor webSocketRoomSubscribeInterceptor() {
-        return new WebSocketRoomSubscribeInterceptor();
+    public WebSocketRoomInterceptor webSocketRoomInterceptor() {
+        return new WebSocketRoomInterceptor();
     }
+
 
     
 
