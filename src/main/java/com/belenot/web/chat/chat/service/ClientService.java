@@ -6,7 +6,6 @@ import java.util.List;
 import com.belenot.web.chat.chat.domain.Client;
 import com.belenot.web.chat.chat.domain.Room;
 import com.belenot.web.chat.chat.event.ClientDeletedEventInfo;
-import com.belenot.web.chat.chat.event.ClientJoinedEventInfo;
 import com.belenot.web.chat.chat.event.ClientUpdatedEventInfo;
 import com.belenot.web.chat.chat.event.RoomEvent;
 import com.belenot.web.chat.chat.event.RoomEventInfo;

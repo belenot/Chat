@@ -1,6 +1,5 @@
 package com.belenot.web.chat.chat.model;
 
-import com.belenot.web.chat.chat.event.RoomEvent;
 import com.belenot.web.chat.chat.event.RoomEventInfo;
 
 import lombok.Getter;

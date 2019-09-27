@@ -12,9 +12,7 @@ import com.belenot.web.chat.chat.model.ParticipantClientModel;
 import com.belenot.web.chat.chat.model.RoomModel;
 import com.belenot.web.chat.chat.repository.support.OffsetPageable;
 import com.belenot.web.chat.chat.security.ClientDetails;
-import com.belenot.web.chat.chat.service.ClientService;
 import com.belenot.web.chat.chat.service.MessageService;
-import com.belenot.web.chat.chat.service.ModeratorService;
 import com.belenot.web.chat.chat.service.ParticipantService;
 import com.belenot.web.chat.chat.service.RoomService;
 
@@ -36,10 +34,10 @@ public class RoomController {
 
     @Autowired
     private RoomService roomService;
-    @Autowired
-    private ClientService clientService;
-    @Autowired
-    private ModeratorService moderatorService;
+    // @Autowired
+    // private ClientService clientService;
+    // @Autowired
+    // private ModeratorService moderatorService;
     @Autowired
     private ParticipantService participantService;
     @Autowired

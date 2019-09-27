@@ -15,7 +15,6 @@ import com.belenot.web.chat.chat.event.RoomEventInfo;
 import com.belenot.web.chat.chat.model.ClientModel;
 import com.belenot.web.chat.chat.repository.ClientRepository;
 import com.belenot.web.chat.chat.repository.ModeratorRepository;
-import com.belenot.web.chat.chat.repository.ParticipantRepository;
 import com.belenot.web.chat.chat.repository.RoomRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +30,12 @@ public class RoomService {
     private RoomRepository roomRepository;
     @Autowired
     private ModeratorRepository moderatorRepository;
-    @Autowired
-    private ParticipantRepository participantRepository;
+    // @Autowired
+    // private ParticipantRepository participantRepository;
     @Autowired
     private ParticipantService participantService;
-    @Autowired
-    private ModeratorService moderatorService;
+    // @Autowired
+    // private ModeratorService moderatorService;
     @Autowired
     private ApplicationEventPublisher eventPublisher;
 

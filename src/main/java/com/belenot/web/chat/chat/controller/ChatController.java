@@ -1,16 +1,12 @@
 package com.belenot.web.chat.chat.controller;
 
 import com.belenot.web.chat.chat.domain.Client;
-import com.belenot.web.chat.chat.domain.Message;
 import com.belenot.web.chat.chat.domain.Participant;
 import com.belenot.web.chat.chat.domain.Room;
-import com.belenot.web.chat.chat.event.MessageCreatedEvent;
 import com.belenot.web.chat.chat.event.RoomEvent;
 import com.belenot.web.chat.chat.event.RoomEventInfo;
-import com.belenot.web.chat.chat.model.MessageModel;
 import com.belenot.web.chat.chat.model.RoomEventModel;
 import com.belenot.web.chat.chat.security.ClientDetails;
-import com.belenot.web.chat.chat.service.ClientService;
 import com.belenot.web.chat.chat.service.MessageService;
 import com.belenot.web.chat.chat.service.ParticipantService;
 import com.belenot.web.chat.chat.service.RoomService;
@@ -26,21 +22,20 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.socket.config.WebSocketMessageBrokerStats;
 
 @Controller
 @MessageMapping
 public class ChatController implements ApplicationListener<RoomEvent<? extends RoomEventInfo>> {
     @Autowired
     private MessageService messageService;
-    @Autowired
-    private ClientService clientService;
+    // @Autowired
+    // private ClientService clientService;
     @Autowired
     private ParticipantService participantService;
     @Autowired
     private RoomService roomService;
-    @Autowired
-    private WebSocketMessageBrokerStats wsmbs;
+    // @Autowired
+    // private WebSocketMessageBrokerStats wsmbs;
     @Autowired
     private SimpMessagingTemplate smt;
 

@@ -1,6 +1,7 @@
 package com.belenot.web.chat.chat;
 
 import com.belenot.web.chat.chat.security.WebSocketRoomInterceptor;
+import com.belenot.web.chat.chat.security.WebSocketSubscriptionHolder;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,10 +30,13 @@ public class WebSocketConfig extends AbstractSecurityWebSocketMessageBrokerConfi
 
     @Override
     protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
-        messages.anyMessage().authenticated()
-                .simpDestMatchers("/app/room/**").hasRole("USER")
-                .simpSubscribeDestMatchers("/topic/room/**").hasRole("USER");
+        messages
+                // .simpDestMatchers("/app/room/**").hasRole("USER")
+                // .simpSubscribeDestMatchers("/topic/room/**").hasRole("USER");
                 // .simpDestMatchers("patterns").access("review ws security with this feature");
+                .nullDestMatcher().authenticated()
+                .simpSubscribeDestMatchers("/topic/room/{roomId}").access("isAuthenticated() and @participantAuthoritiesChecker.isJoined(message, authentication) and not @participantAuthoritiesChecker.isBanned(message, authentication)")
+                .simpDestMatchers("/app/room/{roomId}/**").access("isAuthenticated() and @participantAuthoritiesChecker.isJoined(message, authentication) and not @participantAuthoritiesChecker.isBanned(message, authentication)");
                 
         
     }
@@ -45,6 +49,10 @@ public class WebSocketConfig extends AbstractSecurityWebSocketMessageBrokerConfi
     @Bean
     public WebSocketRoomInterceptor webSocketRoomInterceptor() {
         return new WebSocketRoomInterceptor();
+    }
+    @Bean
+    public WebSocketSubscriptionHolder webSocketSubscriptionHolder() {
+        return new WebSocketSubscriptionHolder();
     }
 
 
