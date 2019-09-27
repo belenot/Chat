@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.belenot.web.chat.chat.event.ForceUnsubscribeEvent;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.MessageBuilder;
@@ -15,8 +17,11 @@ import org.springframework.messaging.support.MessageBuilder;
 //@Component
 public class WebSocketSubscriptionHolder {
 
+    // Because of circular dependencies, sending responsibilities was moved to UnsubscribeSenderEventListener;
+    // @Autowired
+    // private SimpMessagingTemplate messagingTemplate;
     @Autowired
-    private SimpMessagingTemplate messagingTemplate;    
+    private ApplicationEventPublisher eventPublisher;
     private Map<Integer, List<Subscription>> subscriptions = new HashMap<>();
     private class Subscription {
         public Subscription(String subscriptionId, String destination, String sessionId) {
@@ -50,7 +55,7 @@ public class WebSocketSubscriptionHolder {
                 headers.setSessionId(subscription.sessionId);
                 headers.setDestination("/topic");
                 Message<?> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headers).build();
-                messagingTemplate.send(message);
+                eventPublisher.publishEvent(new ForceUnsubscribeEvent(message));
                 subscriptionsForRemoval.add(i);
             }
             for (int removalSubscription : subscriptionsForRemoval) {

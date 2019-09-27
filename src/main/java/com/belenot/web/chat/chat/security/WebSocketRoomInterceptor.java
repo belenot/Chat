@@ -31,31 +31,6 @@ public class WebSocketRoomInterceptor implements ChannelInterceptor {
     private WebSocketSubscriptionHolder subscriptionHolder;
 
     private static final String subscribePathPattern = "^/topic/room/(?<roomId>\\d+)$";
-    // private static final String sendPathPattern = "^/app/room/(?<roomId>\\d+)/message/new$";
-
-    // @Override
-    // // Note: review throwed exception when defining errors subsystem
-    // public Message<?> preSend(Message<?> message, MessageChannel channel) {
-    //     Room room = null;
-    //     StompCommand command = StompHeaderAccessor.wrap(message).getCommand();
-    //     if (command.equals(StompCommand.SUBSCRIBE)) {
-    //         room = retrieveRoom(message, subscribePathPattern);
-    //     } else if (command.equals(StompCommand.SEND)) {
-    //         room = retrieveRoom(message, sendPathPattern);
-    //     } else {
-    //         return message;
-    //     }
-    //     if (room == null){
-    //         //throw new MessagingException("Room doesn't exists");
-    //         return null;
-    //     }
-    //     Client client = ((ClientDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-    //     if (isClientAllowed(room, client)) {
-    //         return message;
-    //     }
-    //     //throw new MessagingException("Client not allowed to this room");
-    //     return null;
-    // }
 
     @Override
     public void postSend(Message<?> message, MessageChannel channel, boolean sent) {

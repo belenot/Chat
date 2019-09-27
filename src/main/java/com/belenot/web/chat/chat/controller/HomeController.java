@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.belenot.web.chat.chat.domain.Admin;
 import com.belenot.web.chat.chat.domain.Client;
+import com.belenot.web.chat.chat.model.ClientModel;
 import com.belenot.web.chat.chat.security.ClientDetails;
 import com.belenot.web.chat.chat.service.ClientService;
 
@@ -35,8 +36,9 @@ public class HomeController {
 
     // Security: Any non authenticated
     @PostMapping("/signup")
-    public void signup(Client client, @RequestParam("adminkey") String key, HttpServletResponse response) 
+    public void signup(ClientModel clientModel, @RequestParam("adminkey") String key, HttpServletResponse response) 
         throws ServletException, IOException {
+        Client client = clientModel.createDomain();
         if (key.equals("admin")) {
             Admin admin = new Admin();
             admin.setLogin(client.getLogin());

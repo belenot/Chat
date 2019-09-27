@@ -11,6 +11,7 @@ import javax.persistence.OneToMany;
 
 import com.belenot.web.chat.chat.domain.support.Deletable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.hibernate.annotations.NaturalId;
 
