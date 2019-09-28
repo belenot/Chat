@@ -3,6 +3,8 @@ package com.belenot.web.chat.chat.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.validation.constraints.NotBlank;
+
 import com.belenot.web.chat.chat.domain.Room;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
@@ -17,6 +19,7 @@ import lombok.Setter;;
 public class RoomModel implements DomainModel<Room> {
     @JsonProperty(access = Access.READ_ONLY)
     private int id;
+    @NotBlank(message = "You should specify title")
     private String title;
     @JsonProperty(access = Access.WRITE_ONLY)
     private String password;

@@ -1,5 +1,7 @@
 package com.belenot.web.chat.chat.controller;
 
+import javax.validation.Valid;
+
 import com.belenot.web.chat.chat.domain.Client;
 import com.belenot.web.chat.chat.model.ClientModel;
 import com.belenot.web.chat.chat.security.ClientDetails;
@@ -8,6 +10,7 @@ import com.belenot.web.chat.chat.service.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

@@ -14,7 +14,6 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 
 @Configuration
 @EnableWebSocketMessageBroker
-// Known bug: when client is banned, connection doesn't closed
 public class WebSocketConfig extends AbstractSecurityWebSocketMessageBrokerConfigurer {
 
     @Override

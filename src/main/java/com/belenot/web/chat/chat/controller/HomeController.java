@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 
 import com.belenot.web.chat.chat.domain.Admin;
 import com.belenot.web.chat.chat.domain.Client;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping( "/" )
+@Validated
 public class HomeController {
 
     @Autowired
@@ -36,7 +39,7 @@ public class HomeController {
 
     // Security: Any non authenticated
     @PostMapping("/signup")
-    public void signup(ClientModel clientModel, @RequestParam("adminkey") String key, HttpServletResponse response) 
+    public void signup(@Valid ClientModel clientModel, @RequestParam("adminkey") String key, HttpServletResponse response) 
         throws ServletException, IOException {
         Client client = clientModel.createDomain();
         if (key.equals("admin")) {

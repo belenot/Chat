@@ -3,6 +3,8 @@ package com.belenot.web.chat.chat.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.validation.constraints.NotBlank;
+
 import com.belenot.web.chat.chat.domain.Client;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
@@ -17,8 +19,10 @@ import lombok.Setter;
 public class ClientModel implements DomainModel<Client> {
     @JsonProperty(access = Access.READ_ONLY)
     private Integer id;
+    @NotBlank
     private String login;
     @JsonProperty(access = Access.WRITE_ONLY)
+    @NotBlank
     private String password;
     private String name;
     private String secondName;
