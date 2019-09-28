@@ -1,7 +1,5 @@
 package com.belenot.web.chat.chat.controller;
 
-import javax.validation.Valid;
-
 import com.belenot.web.chat.chat.domain.Client;
 import com.belenot.web.chat.chat.model.ClientModel;
 import com.belenot.web.chat.chat.security.ClientDetails;
@@ -10,7 +8,6 @@ import com.belenot.web.chat.chat.service.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,9 +24,6 @@ public class ClientController {
     @PostMapping(path="/update", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ClientModel update(@RequestBody ClientModel clientModel) {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        // if (updatedClient.getAge() > 0) client.setAge(updatedClient.getAge());
-        // if (updatedClient.getName() != null && !updatedClient.getName().equals("")) client.setName(updatedClient.getName());
-        // if (updatedClient.getSecondName() != null && !updatedClient.getSecondName().equals("")) client.setSecondName(updatedClient.getSecondName());
         clientModel.updateDomain(client);
         client = clientService.update(client);
         clientModel = new ClientModel(client);
