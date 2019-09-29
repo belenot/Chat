@@ -14,12 +14,18 @@ public class LoadedRoomModel implements DomainModel<Room> {
 
     private int id;
     private String title;
-    private boolean banned;
+    private Boolean banned = null;
+    private Boolean joined = false;
 
     public LoadedRoomModel(Room room, Participant participant) {
         id = room.getId();
         title = room.getTitle();
-        banned = participant.isBanned();
+        if (participant == null || participant.isDeleted()) {
+            joined = false;
+        } else {
+            joined = true;
+            banned = participant.isBanned();
+        }
     }
 
     // Not supported for recieving. Only sended to response

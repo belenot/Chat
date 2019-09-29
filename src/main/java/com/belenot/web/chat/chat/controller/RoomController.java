@@ -102,7 +102,7 @@ public class RoomController {
         return RoomModel.of(rooms);
     }
 
-    // Security: client is joined
+    // Security: client is authenticated
     @GetMapping("/{roomId}")
     public LoadedRoomModel load(@PathVariable("roomId") @NotNull Room room) {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();

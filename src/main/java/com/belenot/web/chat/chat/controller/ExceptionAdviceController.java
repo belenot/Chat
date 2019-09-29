@@ -2,6 +2,7 @@ package com.belenot.web.chat.chat.controller;
 
 import javax.validation.ConstraintViolationException;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -34,6 +35,11 @@ public class ExceptionAdviceController extends ResponseEntityExceptionHandler {
         return entity;
     }
 
+    @ExceptionHandler
+    public HttpEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException exc) {
+        ResponseEntity<String> entity = new ResponseEntity<String>("Not valid data. Change and try again", HttpStatus.BAD_REQUEST);
+        return entity;
+    }
     
     
 
