@@ -28,16 +28,16 @@ public class RoomEventListener implements ApplicationListener<RoomEvent<? extend
         int roomId = event.getRoomId();
         if (event.getSource() instanceof ClientBannedEventInfo && ((ClientBannedEventInfo)event.getSource()).isBanned()) {
             int clientId = ((ClientBannedEventInfo)event.getSource()).getClientId();
-            subscriptionHolder.release(clientId, destinationPrefix + roomId);
+            subscriptionHolder.forceUnsubscribe(clientId, destinationPrefix + roomId);
         } else if (event.getSource() instanceof ClientLeavedEventInfo) {
             int clientId = ((ClientLeavedEventInfo)event.getSource()).getClientId();
-            subscriptionHolder.release(clientId, destinationPrefix + roomId);
+            subscriptionHolder.forceUnsubscribe(clientId, destinationPrefix + roomId);
         } else if (event.getSource() instanceof RoomDeletedEventInfo) {
             Room room = roomService.byId(roomId);
             if (room != null) {
                 List<Client> clients = clientService.byRoom(room);
                 for (Client client : clients) {
-                    subscriptionHolder.release(client.getId(), destinationPrefix + roomId);
+                    subscriptionHolder.forceUnsubscribe(client.getId(), destinationPrefix + roomId);
                 }
             }
         }

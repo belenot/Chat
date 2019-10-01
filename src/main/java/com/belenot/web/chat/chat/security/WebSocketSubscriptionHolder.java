@@ -43,10 +43,10 @@ public class WebSocketSubscriptionHolder {
         clientSubscriptions.add(new Subscription(subscriptionId, destination, sessionId));
     }
 
-    public synchronized void release(int clientId, String destination) {
+    public synchronized void forceUnsubscribe(int clientId, String destination) {
         List<Subscription> clientSubscriptions = subscriptions.get(clientId);
         if (clientSubscriptions != null) {
-            List<Integer> subscriptionsForRemoval = new ArrayList<>(clientSubscriptions.size());
+            //List<Integer> subscriptionsForRemoval = new ArrayList<>(clientSubscriptions.size());
             for (int i = 0; i < clientSubscriptions.size(); i++) {
                 Subscription subscription = clientSubscriptions.get(i);
                 if (!subscription.destination.equals(destination)) continue;
@@ -56,14 +56,35 @@ public class WebSocketSubscriptionHolder {
                 headers.setDestination("/topic");
                 Message<?> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headers).build();
                 eventPublisher.publishEvent(new ForceUnsubscribeEvent(message));
-                subscriptionsForRemoval.add(i);
+                //subscriptionsForRemoval.add(i);
             }
-            for (int removalSubscription : subscriptionsForRemoval) {
-                clientSubscriptions.remove(removalSubscription);
-            }
-            if (clientSubscriptions.size() == 0) {
-                subscriptions.remove(clientId);
-            }
+            // for (int removalSubscription : subscriptionsForRemoval) {
+            //     clientSubscriptions.remove(removalSubscription);
+            // }
+            // if (clientSubscriptions.size() == 0) {
+            //     subscriptions.remove(clientId);
+            // }
         }
     }
+
+    /**
+     * Only removes subscription from holded map. Doesn't publish event.
+     * Used when recieved event for client unsubcription by itself?
+     * issue: when unsubscription event is published? When was recieved message in app, or in broker? Would forced unsubscription(releaseByDestination) publish this event?
+     *
+     */
+    public synchronized void unhold(String subscriptionId) {
+        for(List<Subscription> clientSubscriptions : subscriptions.values()) {
+            Subscription subscription = clientSubscriptions.stream().filter(s->s.subscriptionId.equals(subscriptionId)).findFirst().orElse(null);
+            if (subscription != null) {
+                clientSubscriptions.remove(subscription);
+            }
+        }
+        // Subscription subscription = subscriptions.get(clientId).stream().filter(s->s.subscriptionId.equals(subscriptionId)).findFirst().get();
+    }
+
+
+    
+
+    
 }

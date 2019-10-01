@@ -74,9 +74,10 @@ public class RoomController {
 
     // Security: client not joined
     @PostMapping("/{roomId}/join")
-    public boolean join(@PathVariable(name = "roomId") @NotNull Room room, @RequestBody(required = false) String password) {
+    public LoadedRoomModel join(@PathVariable(name = "roomId") @NotNull Room room, @RequestBody(required = false) String password) {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        return roomService.join(room, client, password) != null;
+        Participant participant = roomService.join(room, client, password);
+        return new LoadedRoomModel(room, participant);
     }
 
     // Security: client is joined
