@@ -1,14 +1,16 @@
 package com.belenot.web.chat.chat.controller;
 
 import com.belenot.web.chat.chat.domain.Client;
+import com.belenot.web.chat.chat.model.ClientModel;
 import com.belenot.web.chat.chat.security.ClientDetails;
 import com.belenot.web.chat.chat.service.ClientService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -18,26 +20,17 @@ public class ClientController {
     @Autowired
     private ClientService clientService;
 
-    @PostMapping("/update/name")
-    public Client name(@RequestParam("name") String name) {
+    // Security: authenticated clients
+    @PostMapping(path="/update", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ClientModel update(@RequestBody ClientModel clientModel) {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        client.setName(name);
-        return clientService.update(client);
+        clientModel.updateDomain(client);
+        client = clientService.update(client);
+        clientModel = new ClientModel(client);
+        return clientModel;
     }
 
-    @PostMapping("/update/age")
-    public Client age(@RequestParam("age") int age) {
-        Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        client.setAge(age);
-        return clientService.update(client);
-    }
-
-    @PostMapping("/update/password")
-    public Client age(@RequestParam("password") String password) {
-        // Comming soon
-        return null;
-    }
-
+    // Security: authenticated clients
     @PostMapping("/delete")
     public void delete() {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();

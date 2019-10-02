@@ -1,27 +1,29 @@
 package com.belenot.web.chat.chat.controller;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import com.belenot.web.chat.chat.domain.Admin;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PositiveOrZero;
+
 import com.belenot.web.chat.chat.domain.Client;
-import com.belenot.web.chat.chat.domain.Moderator;
+import com.belenot.web.chat.chat.domain.Message;
 import com.belenot.web.chat.chat.domain.Participant;
 import com.belenot.web.chat.chat.domain.Room;
-import com.belenot.web.chat.chat.domain.support.wrap.MessageWrapper;
+import com.belenot.web.chat.chat.model.LoadedRoomModel;
+import com.belenot.web.chat.chat.model.MessageModel;
+import com.belenot.web.chat.chat.model.ParticipantClientModel;
+import com.belenot.web.chat.chat.model.RoomModel;
 import com.belenot.web.chat.chat.repository.support.OffsetPageable;
 import com.belenot.web.chat.chat.security.ClientDetails;
-import com.belenot.web.chat.chat.service.ClientService;
 import com.belenot.web.chat.chat.service.MessageService;
-import com.belenot.web.chat.chat.service.ModeratorService;
 import com.belenot.web.chat.chat.service.ParticipantService;
 import com.belenot.web.chat.chat.service.RoomService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,124 +31,105 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.HttpClientErrorException;
 
 
 @RestController
 @RequestMapping("/room")
+@Validated
 public class RoomController {    
 
     @Autowired
     private RoomService roomService;
-    @Autowired
-    private ClientService clientService;
-    @Autowired
-    private ModeratorService moderatorService;
+    // @Autowired
+    // private ClientService clientService;
+    // @Autowired
+    // private ModeratorService moderatorService;
     @Autowired
     private ParticipantService participantService;
     @Autowired
     private MessageService messageService;
-    @Autowired
-    private MessageWrapper messageWrapper;
 
-    @PostMapping
-    public Room create(@RequestBody Room room) {
-        Client client = ((ClientDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        if (client != null && !(client instanceof Admin)) {
-            roomService.add(room);
-            Moderator moderator = new Moderator(client);
-            room.addModerator(moderator);
-            moderatorService.add(moderator);
-            roomService.update(room);
-        } else {
-            roomService.add(room);
-        }
-        return room;
+    // Validation: Title not null, title not taken
+    // Security: client
+    @PostMapping("/create")
+    public RoomModel create(@RequestBody @Validated RoomModel roomModel) {
+        Room room = roomModel.createDomain();
+        Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
+        roomModel = new RoomModel(roomService.create(client, room));
+        return roomModel;
     }
 
-    // Maybe it unneccessary?
-    @PostMapping("/update")
-    public Room update(@RequestBody Room room) {
-        return roomService.update(room);
-    }
-
+    // Security: Client is moderator of this room
     @PostMapping("/{roomId}/moderator/delete")
-    public void delete(@PathVariable("roomId") Room room) {
+    public void delete(@PathVariable("roomId") @NotNull Room room) {
         roomService.delete(room);
     }
 
-    @GetMapping
-    public List<Room> rooms() {
-        return roomService.all();
+    // Security: joined client
+    @GetMapping("/{roomId}/clients")
+    public List<ParticipantClientModel> getClients(@PathVariable("roomId") @NotNull Room room) {
+        List<Participant> participants = participantService.byRoom(room);
+        return ParticipantClientModel.of(participants);
     }
 
+    // Security: client not joined
     @PostMapping("/{roomId}/join")
-    public boolean join(@PathVariable("roomId") Room room, @RequestBody(required = false) String password) {
+    public LoadedRoomModel join(@PathVariable(name = "roomId") @NotNull Room room, @RequestBody(required = false) String password) {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        Participant participant = participantService.byClientAndRoom(client, room);
-        if (participant == null) {
-            if (room.getPassword() == null || room.getPassword().equals(password))
-                participant = participantService.add(room, client);
-        }
-
-        return participant!=null;
+        Participant participant = roomService.join(room, client, password);
+        return new LoadedRoomModel(room, participant);
     }
+
+    // Security: client is joined
     @PostMapping("/{roomId}/leave")
-    public void leave(@PathVariable("roomId") Room room) {
+    public void leave(@PathVariable("roomId") @NotNull Room room) {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        Participant participant = participantService.byClientAndRoom(client, room);
-        if (participant == null) {
-            return;
-        }
-        participantService.delete(participant, client);
+        roomService.leave(room, client);
     }
-    // Need secure: only room's moderators and admin are allowed
+
+    // Security: active client is room's moderator
+    // Validation: params not null
     @PostMapping("/{roomId}/moderator/ban/{clientId}")
-    public Participant  ban(@PathVariable("roomId") Room room, @PathVariable("clientId") Client client) {
-        Client moderatorClient = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        if (moderatorClient == null) throw new HttpClientErrorException(HttpStatus.FORBIDDEN);
-        Moderator moderator = moderatorService.byClientAndRoom(moderatorClient, room);
-        if (moderator == null) throw new HttpClientErrorException(HttpStatus.FORBIDDEN);
-        Participant participant = participantService.byClientAndRoom(client, room);
-        if (participant == null) throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
-        participant.setBanned(true);
-        return participantService.update(participant);
+    public void ban(@PathVariable("roomId") @NotNull Room room, @PathVariable("clientId") @NotNull Client client, @RequestParam(name="ban", defaultValue = "true") boolean ban){
+        Client activeClient = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
+        roomService.ban(room, client, activeClient, ban);
     }
 
-    @GetMapping("/{roomId}/moderator/participant")
-    public List<Client> participants(@PathVariable("roomId") Room room) {
-        return clientService.byRoom(room);
+    // Security: any authenticated client
+    // Validation: title not null and not empty
+    @PostMapping("/search")
+    public List<RoomModel> searchRooms(@RequestParam("title") @Validated @NotBlank(message = "specify title") String title) {
+        List<Room> rooms = roomService.byTitleLike(title);
+        return RoomModel.of(rooms);
     }
 
-    @GetMapping("/search")
-    public Room searchedRooms(@RequestParam("title") String title) {
-        return roomService.byTitle(title);
-    }
-
+    // Security: client is authenticated
     @GetMapping("/{roomId}")
-    public Map<String, Object> load(@PathVariable("roomId") Room room) {
-        Map<String, Object> loaded = new HashMap<>();
+    public LoadedRoomModel load(@PathVariable("roomId") @NotNull Room room) {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
         Participant participant = participantService.byClientAndRoom(client, room);
-        loaded.put("joined", participant!=null);
-        loaded.put("room", room);
-        return loaded;
+        return new LoadedRoomModel(room, participant);
     }
 
+    // Security: any authenticated client 
     @GetMapping("/joined")
-    public List<Room> joined() {
+    public List<RoomModel> joined() {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        return roomService.joinedByClient(client);
+        List<Room> rooms = roomService.joinedByClient(client);
+        return RoomModel.of(rooms);
     }
+    // Security: any authenticated client
     @GetMapping("/moderated")
-    public List<Room> moderated() {
+    public List<RoomModel> moderated() {
         Client client = ((ClientDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClient();
-        return roomService.moderatedByClient(client);
+        List<Room> rooms = roomService.moderatedByClient(client);
+        return RoomModel.of(rooms);
     }
 
-    @GetMapping("/{roomId}/message/page")
-    public List<Map<String, Object>> messagePage(@PathVariable("roomId") Room room, Pageable pageable, @RequestParam("offset") long offset) {
-        return messageWrapper.wrapUp(messageService.page(room, OffsetPageable.of(pageable, offset)));
+    // Security: client is joined
+    @GetMapping("/{roomId}/messages")
+    public List<MessageModel> messagePage(@PathVariable("roomId") @NotNull Room room, Pageable pageable, @RequestParam("offset") @PositiveOrZero long offset) {
+        List<Message> messages = messageService.page(room, OffsetPageable.of(pageable, offset));
+        return MessageModel.of(messages);
     }
-
 }

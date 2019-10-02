@@ -1,6 +1,7 @@
 package com.belenot.web.chat.chat;
 
-import com.belenot.web.chat.chat.security.WebSocketRoomSubscribeInterceptor;
+import com.belenot.web.chat.chat.security.WebSocketRoomInterceptor;
+import com.belenot.web.chat.chat.security.WebSocketSubscriptionHolder;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,22 +29,31 @@ public class WebSocketConfig extends AbstractSecurityWebSocketMessageBrokerConfi
 
     @Override
     protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
-        messages.anyMessage().authenticated()
-                .simpDestMatchers("/app/chat/**").hasRole("USER")
-                .simpSubscribeDestMatchers("/topic/chat/**").hasRole("USER");
+        messages
+                // .simpDestMatchers("/app/room/**").hasRole("USER")
+                // .simpSubscribeDestMatchers("/topic/room/**").hasRole("USER");
+                // .simpDestMatchers("patterns").access("review ws security with this feature");
+                .nullDestMatcher().authenticated()
+                .simpSubscribeDestMatchers("/topic/room/{roomId}").access("isAuthenticated() and @participantAuthoritiesChecker.isJoined(message, authentication) and not @participantAuthoritiesChecker.isBanned(message, authentication)")
+                .simpDestMatchers("/app/room/{roomId}/**").access("isAuthenticated() and @participantAuthoritiesChecker.isJoined(message, authentication) and not @participantAuthoritiesChecker.isBanned(message, authentication)");
                 
         
     }
 
     @Override
     protected void customizeClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(webSocketRoomSubscribeInterceptor());
+        registration.interceptors(webSocketRoomInterceptor());
     }
 
     @Bean
-    public WebSocketRoomSubscribeInterceptor webSocketRoomSubscribeInterceptor() {
-        return new WebSocketRoomSubscribeInterceptor();
+    public WebSocketRoomInterceptor webSocketRoomInterceptor() {
+        return new WebSocketRoomInterceptor();
     }
+    @Bean
+    public WebSocketSubscriptionHolder webSocketSubscriptionHolder() {
+        return new WebSocketSubscriptionHolder();
+    }
+
 
     
 

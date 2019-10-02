@@ -8,10 +8,15 @@ import com.belenot.web.chat.chat.domain.Client;
 import com.belenot.web.chat.chat.domain.Message;
 import com.belenot.web.chat.chat.domain.Participant;
 import com.belenot.web.chat.chat.domain.Room;
+import com.belenot.web.chat.chat.event.MessageSendedEventInfo;
+import com.belenot.web.chat.chat.event.RoomEvent;
+import com.belenot.web.chat.chat.event.RoomEventInfo;
+import com.belenot.web.chat.chat.model.MessageModel;
 import com.belenot.web.chat.chat.repository.MessageRepository;
 import com.belenot.web.chat.chat.repository.ParticipantRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +28,8 @@ public class MessageService {
     private MessageRepository messageRepository;
     @Autowired
     private ParticipantRepository participantRepository;
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
     
     public Message add(Message message) {
         if (message.getText().length() > 0)
@@ -35,7 +42,11 @@ public class MessageService {
         Participant participant = participantRepository.findByClientAndRoom(client, room);
         message.setText(text);
         message.setParticipant(participant);
-        return messageRepository.save(message);
+        message = messageRepository.save(message);
+        RoomEventInfo roomEventInfo = new MessageSendedEventInfo(new MessageModel(message));
+        RoomEvent<RoomEventInfo> roomEvent = new RoomEvent<>(room.getId(), "MessageSended", roomEventInfo);
+        eventPublisher.publishEvent(roomEvent);
+        return message;
     }
 
     public List<Message> byClient(Client client) {
